@@ -52,6 +52,8 @@ constexpr uint32_t kFakeFrequency3 = 2484;
 constexpr uint32_t kFakeFrequency4 = 5200;
 constexpr uint32_t kFakeFrequency5 = 5400;
 constexpr uint32_t kFakeFrequency6 = 5600;
+// 802.11p channel which is not valid for wifi usage.
+constexpr uint32_t kFakeInvalidFrequency = 5950;
 constexpr uint32_t kFakeSequenceNumber = 162;
 constexpr uint32_t kFakeProtocolFeatures = 0x02;
 constexpr uint16_t kFakeWiphyIndex = 8;
@@ -60,6 +62,7 @@ constexpr int kFakeErrorCode = EIO;
 constexpr bool kFakeSupportsRandomMacOneshotScan = true;
 constexpr bool kFakeSupportsRandomMacSchedScan = false;
 const char kFakeInterfaceName[] = "testif0";
+const char kFakeCountryCode[] = "US";
 const uint32_t kFakeInterfaceIndex = 34;
 const uint32_t kFakeInterfaceIndex1 = 36;
 const uint8_t kFakeInterfaceMacAddress[] = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
@@ -136,13 +139,19 @@ NL80211NestedAttr GenerateBandsAttributeFor2g() {
 NL80211NestedAttr GenerateBandsAttributeFor5gAndDfs() {
   NL80211NestedAttr freq_5g_1(4);
   NL80211NestedAttr freq_5g_2(5);
-  NL80211NestedAttr freq_dfs_1(6);
+  NL80211NestedAttr freq_5g_3(6);
+  NL80211NestedAttr freq_dfs_1(7);
   freq_5g_1.AddAttribute(NL80211Attr<uint32_t>(NL80211_FREQUENCY_ATTR_FREQ,
                                                kFakeFrequency4));
   freq_5g_2.AddAttribute(NL80211Attr<uint32_t>(NL80211_FREQUENCY_ATTR_FREQ,
                                                kFakeFrequency5));
   // This channel is passive only.
   freq_5g_2.AddFlagAttribute(NL80211_FREQUENCY_ATTR_NO_IR);
+
+  // This channel is not valid for wifi usage.
+  // We should not include it in the parse result.
+  freq_5g_3.AddAttribute(NL80211Attr<uint32_t>(NL80211_FREQUENCY_ATTR_FREQ,
+                                               kFakeInvalidFrequency));
 
   // DFS frequency.
   freq_dfs_1.AddAttribute(NL80211Attr<uint32_t>(NL80211_FREQUENCY_ATTR_FREQ,
@@ -154,6 +163,7 @@ NL80211NestedAttr GenerateBandsAttributeFor5gAndDfs() {
   NL80211NestedAttr band_5g_freqs(NL80211_BAND_ATTR_FREQS);
   band_5g_freqs.AddAttribute(freq_5g_1);
   band_5g_freqs.AddAttribute(freq_5g_2);
+  band_5g_freqs.AddAttribute(freq_5g_3);
   band_5g_freqs.AddAttribute(freq_dfs_1);
 
   NL80211NestedAttr band_5g_attr(1);
@@ -612,6 +622,39 @@ TEST_F(NetlinkUtilsTest, CanHandleGetProtocolFeaturesError) {
 
   uint32_t features_ignored;
   EXPECT_FALSE(netlink_utils_->GetProtocolFeatures(&features_ignored));
+}
+
+TEST_F(NetlinkUtilsTest, CanGetCountryCode) {
+  // There is no specification for the response packet id for
+  // NL80211_CMD_GET_REG.
+  // Still use NL80211_CMD_GET_REG here.
+  NL80211Packet get_country_code_response(
+      netlink_manager_->GetFamilyId(),
+      NL80211_CMD_GET_PROTOCOL_FEATURES,
+      netlink_manager_->GetSequenceNumber(),
+      getpid());
+  get_country_code_response.AddAttribute(
+      NL80211Attr<string>(NL80211_ATTR_REG_ALPHA2,
+                          kFakeCountryCode));
+  vector<NL80211Packet> response = {get_country_code_response};
+
+  EXPECT_CALL(*netlink_manager_, SendMessageAndGetResponses(_, _)).
+      WillOnce(DoAll(MakeupResponse(response), Return(true)));
+
+  string country_code;
+  EXPECT_TRUE(netlink_utils_->GetCountryCode(&country_code));
+  EXPECT_EQ(kFakeCountryCode, country_code);
+}
+
+TEST_F(NetlinkUtilsTest, CanHandleGetCountryCodeError) {
+  // Mock an error response from kernel.
+  vector<NL80211Packet> response = {CreateControlMessageError(kFakeErrorCode)};
+
+  EXPECT_CALL(*netlink_manager_, SendMessageAndGetResponses(_, _)).
+      WillOnce(DoAll(MakeupResponse(response), Return(true)));
+
+  string country_code_ignored;
+  EXPECT_FALSE(netlink_utils_->GetCountryCode(&country_code_ignored));
 }
 
 }  // namespace wificond

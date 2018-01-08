@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package android.net.wifi;
 
-// A callback for receiving ANQP reply events.
-interface IANQPDoneCallback {
-  // |anqp_result| is null if we timed out waiting for response from the AP
-  // with bssid |bssid|.
-  oneway void OnANQPDone(in byte[] bssid, in byte[] anqp_result);
+// A callback for receiving events related to soft AP.
+interface IApInterfaceEventCallback {
+
+  // Signals that number of stations associated to this soft Ap has changed.
+  //
+  // @param numStations Number of associated stations after change
+  oneway void onNumAssociatedStationsChanged(int numStations);
 }

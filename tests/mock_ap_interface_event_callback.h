@@ -14,30 +14,28 @@
  * limitations under the License.
  */
 
-#ifndef WIFICOND_TEST_MOCK_CLIENT_INTERFACE_IMPL_H_
-#define WIFICOND_TEST_MOCK_CLIENT_INTERFACE_IMPL_H_
+#ifndef WIFICOND_TESTS_MOCK_AP_INTERFACE_EVENT_CALLBACK_H_
+#define WIFICOND_TESTS_MOCK_AP_INTERFACE_EVENT_CALLBACK_H_
 
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-#include "wificond/client_interface_impl.h"
+#include "android/net/wifi/IApInterfaceEventCallback.h"
 
 namespace android {
-
 namespace wificond {
 
-class MockClientInterfaceImpl : public ClientInterfaceImpl {
+class MockApInterfaceEventCallback
+    : public net::wifi::IApInterfaceEventCallback {
  public:
-  MockClientInterfaceImpl(
-      android::wifi_system::InterfaceTool*,
-      NetlinkUtils*,
-      ScanUtils*);
-  ~MockClientInterfaceImpl() override = default;
+  MockApInterfaceEventCallback() = default;
+  ~MockApInterfaceEventCallback() = default;
 
-  MOCK_CONST_METHOD0(IsAssociated, bool());
-
-};  // class MockClientInterfaceImpl
+  MOCK_METHOD0(onAsBinder, IBinder*());
+  MOCK_METHOD1(onNumAssociatedStationsChanged, ::android::binder::Status(int));
+};
 
 }  // namespace wificond
 }  // namespace android
 
-#endif  // WIFICOND_TEST_MOCK_CLIENT_INTERFACE_IMPL_H_
+#endif  // WIFICOND_TESTS_MOCK_AP_INTERFACE_EVENT_CALLBACK_H_

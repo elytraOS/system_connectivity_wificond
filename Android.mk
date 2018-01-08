@@ -35,7 +35,6 @@ LOCAL_SHARED_LIBRARIES := \
     libbase \
     libcutils \
     libhidlbase \
-    libhwbinder \
     libhidltransport \
     libminijail \
     libutils \
@@ -78,7 +77,6 @@ LOCAL_SHARED_LIBRARIES := \
     libbase \
     libutils \
     libhidlbase \
-    libhwbinder \
     libhidltransport \
     libwifi-system \
     libwifi-system-iface
@@ -131,7 +129,7 @@ LOCAL_CPPFLAGS := $(wificond_cpp_flags)
 LOCAL_SRC_FILES := \
     ipc_constants.cpp \
     aidl/android/net/wifi/IApInterface.aidl \
-    aidl/android/net/wifi/IANQPDoneCallback.aidl \
+    aidl/android/net/wifi/IApInterfaceEventCallback.aidl \
     aidl/android/net/wifi/IClientInterface.aidl \
     aidl/android/net/wifi/IInterfaceEventCallback.aidl \
     aidl/android/net/wifi/IPnoScanEvent.aidl \
@@ -218,7 +216,6 @@ LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libhidltransport \
     libhidlbase \
-    libhwbinder \
     liblog \
     libutils \
     libwifi-system \
