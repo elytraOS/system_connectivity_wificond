@@ -98,7 +98,7 @@ NetlinkUtils::NetlinkUtils(NetlinkManager* netlink_manager)
 
 NetlinkUtils::~NetlinkUtils() {}
 
-bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index) {
+bool NetlinkUtils::GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list) {
   NL80211Packet get_wiphy(
       netlink_manager_->GetFamilyId(),
       NL80211_CMD_GET_WIPHY,
@@ -131,12 +131,56 @@ bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index) {
                  << static_cast<int>(packet->GetCommand());
       return false;
     }
-    if (!packet->GetAttributeValue(NL80211_ATTR_WIPHY, out_wiphy_index)) {
+    uint32_t wiphy_index;
+    if (!packet->GetAttributeValue(NL80211_ATTR_WIPHY, &wiphy_index)) {
       LOG(ERROR) << "Failed to get wiphy index from reply message";
       return false;
     }
+    wiphy_index_list->push_back(wiphy_index);
   }
   return true;
+}
+
+bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index) {
+  std::vector<uint32_t> wiphy_index_list;
+
+  if (!GetWiphyIndices(&wiphy_index_list)) {
+    LOG(ERROR) << "Failed to get wiphy indices";
+    return false;
+  }
+
+  *out_wiphy_index = wiphy_index_list.back();
+  return true;
+}
+
+bool NetlinkUtils::GetWiphyIndexWithInterfaceName(
+    const std::string base_ifname,
+    uint32_t* out_wiphy_index) {
+  std::vector<uint32_t> wiphy_index_list;
+
+  if (!GetWiphyIndices(&wiphy_index_list)) {
+    LOG(ERROR) << "Failed to get wiphy indices";
+    return false;
+  }
+
+  for (uint32_t& wiphy_index : wiphy_index_list) {
+    vector<InterfaceInfo> interfaces;
+
+    if (!GetInterfaces(wiphy_index, &interfaces)) {
+      LOG(ERROR) << "Failed to get interfaces for wiphy_index: " << wiphy_index;
+      return false;
+    }
+
+    for (InterfaceInfo& interface : interfaces) {
+      if (interface.name == base_ifname) {
+        *out_wiphy_index = wiphy_index;
+        return true;
+      }
+    }
+  }
+
+  LOG(ERROR) << "Failed to find wiphy index with interface: " << base_ifname;
+  return false;
 }
 
 bool NetlinkUtils::GetInterfaces(uint32_t wiphy_index,
