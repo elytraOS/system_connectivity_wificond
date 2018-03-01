@@ -120,6 +120,7 @@ class Server : public android::net::wifi::BnWificond {
       android::sp<android::net::wifi::IApInterface> network_interface);
   void MarkDownAllInterfaces();
 
+  const std::string base_ifname_;
   const std::unique_ptr<wifi_system::InterfaceTool> if_tool_;
   const std::unique_ptr<wifi_system::SupplicantManager> supplicant_manager_;
   const std::unique_ptr<wifi_system::HostapdManager> hostapd_manager_;

@@ -20,10 +20,9 @@
 #include <string>
 #include <vector>
 
-#include <linux/nl80211.h>
-
 #include <android-base/macros.h>
 
+#include "wificond/net/kernel-header-latest/nl80211.h"
 #include "wificond/net/netlink_manager.h"
 
 namespace android {
@@ -94,18 +93,24 @@ struct ScanCapabilities {
 struct WiphyFeatures {
   WiphyFeatures()
       : supports_random_mac_oneshot_scan(false),
-        supports_random_mac_sched_scan(false) {}
-  WiphyFeatures(uint32_t feature_flags)
-      : supports_random_mac_oneshot_scan(
-            feature_flags & NL80211_FEATURE_SCAN_RANDOM_MAC_ADDR),
-        supports_random_mac_sched_scan(
-            feature_flags & NL80211_FEATURE_SCHED_SCAN_RANDOM_MAC_ADDR) {}
+        supports_random_mac_sched_scan(false),
+        supports_low_span_oneshot_scan(false),
+        supports_low_power_oneshot_scan(false),
+        supports_high_accuracy_oneshot_scan(false) {}
+  WiphyFeatures(uint32_t feature_flags,
+                const std::vector<uint8_t>& ext_feature_flags_bytes);
   // This device/driver supports using a random MAC address during scan
   // (while not associated).
   bool supports_random_mac_oneshot_scan;
   // This device/driver supports using a random MAC address for every
   // scan iteration during scheduled scan (while not associated).
   bool supports_random_mac_sched_scan;
+  // This device/driver supports performing low-span/low-latency one-shot scans.
+  bool supports_low_span_oneshot_scan;
+  // This device/driver supports performing low-power one-shot scans.
+  bool supports_low_power_oneshot_scan;
+  // This device/driver supports performing high-accuracy one-shot scans.
+  bool supports_high_accuracy_oneshot_scan;
   // There are other flags included in NL80211_ATTR_FEATURE_FLAGS.
   // We will add them once we find them useful.
 };
@@ -152,6 +157,18 @@ class NetlinkUtils {
   // |*out_wiphy_index| returns the wiphy index from kernel.
   // Returns true on success.
   virtual bool GetWiphyIndex(uint32_t* out_wiphy_index);
+
+  // Get a list of wiphy indices for all registered wiphys from kernel.
+  // |*wiphy_index_list| returns the list of indices
+  // Returns true on success
+  virtual bool GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list);
+
+  // Get a wiphy index that contains an interface with base name.
+  // |base_ifname| is the name of interface to search for
+  // |*out_wiphy_index| returns the wiphy index from kernel.
+  // Returns true on success
+  virtual bool GetWiphyIndexWithInterfaceName(const std::string base_ifname,
+                                              uint32_t* out_wiphy_index);
 
   // Get wifi interfaces info from kernel.
   // |wiphy_index| is the wiphy index we get using GetWiphyIndex().
@@ -217,7 +234,7 @@ class NetlinkUtils {
   // from wiphy with index |wiphy_index|.
   virtual void UnsubscribeRegDomainChange(uint32_t wiphy_index);
 
-  // Sign up to be notified when there is an station event.
+  // Sign up to be notified when there is a station event.
   // Only one handler can be registered per interface index.
   // New handler will replace the registered handler if they are for the
   // same interface index.
@@ -226,6 +243,16 @@ class NetlinkUtils {
 
   // Cancel the sign-up of receiving station events.
   virtual void UnsubscribeStationEvent(uint32_t interface_index);
+
+  // Sign up to be notified when there is a channel switch event.
+  // Only one handler can be registered per interface index.
+  // New handler will replace the registered handler if they are for the
+  // same interface index.
+  virtual void SubscribeChannelSwitchEvent(uint32_t interface_index,
+                                           OnChannelSwitchEventHandler handler);
+
+  // Cancel the sign-up of receiving channel switch events.
+  virtual void UnsubscribeChannelSwitchEvent(uint32_t interface_index);
 
   // Visible for testing.
   bool supports_split_wiphy_dump_;

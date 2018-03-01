@@ -52,6 +52,7 @@ namespace wificond {
 namespace {
 
 constexpr const char* kPermissionDump = "android.permission.DUMP";
+constexpr const char* kBaseIfName = "wlan0";
 
 }  // namespace
 
@@ -60,7 +61,8 @@ Server::Server(unique_ptr<InterfaceTool> if_tool,
                unique_ptr<HostapdManager> hostapd_manager,
                NetlinkUtils* netlink_utils,
                ScanUtils* scan_utils)
-    : if_tool_(std::move(if_tool)),
+    : base_ifname_(kBaseIfName),
+      if_tool_(std::move(if_tool)),
       supplicant_manager_(std::move(supplicant_manager)),
       hostapd_manager_(std::move(hostapd_manager)),
       netlink_utils_(netlink_utils),
@@ -248,7 +250,7 @@ status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
 void Server::MarkDownAllInterfaces() {
   uint32_t wiphy_index;
   vector<InterfaceInfo> interfaces;
-  if (netlink_utils_->GetWiphyIndex(&wiphy_index) &&
+  if (netlink_utils_->GetWiphyIndexWithInterfaceName(base_ifname_, &wiphy_index) &&
       netlink_utils_->GetInterfaces(wiphy_index, &interfaces)) {
     for (InterfaceInfo& interface : interfaces) {
       if_tool_->SetUpState(interface.name.c_str(), false);
@@ -349,7 +351,7 @@ bool Server::SetupInterface(const std::string& iface_name,
 }
 
 bool Server::RefreshWiphyIndex() {
-  if (!netlink_utils_->GetWiphyIndex(&wiphy_index_)) {
+  if (!netlink_utils_->GetWiphyIndexWithInterfaceName(base_ifname_, &wiphy_index_)) {
     LOG(ERROR) << "Failed to get wiphy index";
     return false;
   }
