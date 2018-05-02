@@ -23,6 +23,7 @@
 #include <android-base/strings.h>
 #include <binder/IPCThreadState.h>
 #include <binder/PermissionCache.h>
+#include <net/if.h>
 
 #include "wificond/logging_utils.h"
 #include "wificond/net/netlink_utils.h"
@@ -203,6 +204,23 @@ Status Server::GetApInterfaces(vector<sp<IBinder>>* out_ap_interfaces) {
   for (auto& it : ap_interfaces_) {
     out_ap_interfaces->push_back(asBinder(it.second->GetBinder()));
   }
+  return binder::Status::ok();
+}
+
+Status Server::QcAddOrRemoveApInterface(const std::string& iface_name,
+                                        bool add_iface,
+                                        bool* out_success) {
+  uint32_t if_index;
+  *out_success = false;
+
+  if (add_iface) {
+    if_index = if_nametoindex(kBaseIfName);
+    *out_success = netlink_utils_->QcAddApInterface(if_index, iface_name);
+  } else {
+    if_index = if_nametoindex(iface_name.c_str());
+    *out_success = netlink_utils_->QcRemoveInterface(if_index);
+  }
+
   return binder::Status::ok();
 }
 

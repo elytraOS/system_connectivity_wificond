@@ -170,6 +170,15 @@ class NetlinkUtils {
   virtual bool GetWiphyIndexWithInterfaceName(const std::string base_ifname,
                                               uint32_t* out_wiphy_index);
 
+  // Add AP interface
+  virtual bool QcAddApInterface(uint32_t if_index,
+                                const std::string if_name);
+
+
+  // Remove interface.
+  virtual bool QcRemoveInterface(uint32_t if_index);
+
+
   // Get wifi interfaces info from kernel.
   // |wiphy_index| is the wiphy index we get using GetWiphyIndex().
   // |interface_info| returns a vector of InterfaceInfo structs with

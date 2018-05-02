@@ -183,6 +183,51 @@ bool NetlinkUtils::GetWiphyIndexWithInterfaceName(
   return false;
 }
 
+bool NetlinkUtils::QcAddApInterface(uint32_t if_index,
+                                    const string if_name) {
+  NL80211Packet add_ap_interface(
+      netlink_manager_->GetFamilyId(),
+      NL80211_CMD_NEW_INTERFACE,
+      netlink_manager_->GetSequenceNumber(),
+      getpid());
+
+  add_ap_interface.AddAttribute(
+      NL80211Attr<uint32_t>(NL80211_ATTR_IFINDEX, if_index));
+  add_ap_interface.AddAttribute(
+      NL80211Attr<string>(NL80211_ATTR_IFNAME, if_name));
+  add_ap_interface.AddAttribute(
+      NL80211Attr<uint32_t>(NL80211_ATTR_IFTYPE, NL80211_IFTYPE_AP));
+
+  unique_ptr<const NL80211Packet> response;
+  if (!netlink_manager_->SendMessageAndGetSingleResponseOrError(add_ap_interface, &response)) {
+    LOG(ERROR) << "NL80211_CMD_NEW_INTERFACE failed";
+    return false;
+  }
+
+  return true;
+}
+
+
+bool NetlinkUtils::QcRemoveInterface(uint32_t if_index) {
+  NL80211Packet remove_interface(
+      netlink_manager_->GetFamilyId(),
+      NL80211_CMD_DEL_INTERFACE,
+      netlink_manager_->GetSequenceNumber(),
+      getpid());
+
+  remove_interface.AddAttribute(
+      NL80211Attr<uint32_t>(NL80211_ATTR_IFINDEX, if_index));
+
+  unique_ptr<const NL80211Packet> response;
+  if (!netlink_manager_->SendMessageAndGetSingleResponseOrError(remove_interface, &response)) {
+    LOG(ERROR) << "NL80211_CMD_DEL_INTERFACE failed";
+    return false;
+  }
+
+  return true;
+}
+
+
 bool NetlinkUtils::GetInterfaces(uint32_t wiphy_index,
                                  vector<InterfaceInfo>* interface_info) {
   NL80211Packet get_interfaces(

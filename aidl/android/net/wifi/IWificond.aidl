@@ -46,6 +46,10 @@ interface IWificond {
     // @return list of the currently configured IApInterface instances.
     List<IBinder> GetApInterfaces();
 
+    // Add or Remove AP interface.
+    boolean QcAddOrRemoveApInterface(@utf8InCpp String iface_name,
+                                     boolean add_iface);
+
     // Returns an array of available frequencies for 2.4GHz channels.
     // Returrns null on failure.
     @nullable int[] getAvailable2gChannels();
