@@ -76,6 +76,7 @@ ScannerImpl::ScannerImpl(uint32_t interface_index,
       offload_scan_supported_(false),
       pno_scan_running_over_offload_(false),
       pno_scan_results_from_offload_(false),
+      nodev_counter_(0),
       interface_index_(interface_index),
       scan_capabilities_(scan_capabilities),
       wiphy_features_(wiphy_features),
@@ -189,10 +190,15 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
   int error_code = 0;
   if (!scan_utils_->Scan(interface_index_, request_random_mac, scan_type,
                          ssids, freqs, &error_code)) {
-    CHECK(error_code != ENODEV) << "Driver is in a bad state, restarting wificond";
+    if (error_code == ENODEV) {
+        nodev_counter_ ++;
+        LOG(WARNING) << "Scan failed with error=nodev. counter=" << nodev_counter_;
+    }
+    CHECK(error_code != ENODEV || nodev_counter_ <= 3) << "Driver is in a bad state, restarting wificond";
     *out_success = false;
     return Status::ok();
   }
+  nodev_counter_ = 0;
   scan_started_ = true;
   *out_success = true;
   return Status::ok();
@@ -304,10 +310,15 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
                                        freqs,
                                        &error_code,
                                        sched_scan_relative_rssi)) {
+    if (error_code == ENODEV) {
+        nodev_counter_ ++;
+        LOG(WARNING) << "Pno Scan failed with error=nodev. counter=" << nodev_counter_;
+    }
     LOG(ERROR) << "Failed to start pno scan";
-    CHECK(error_code != ENODEV) << "Driver is in a bad state, restarting wificond";
+    CHECK(error_code != ENODEV || nodev_counter_ <= 3) << "Driver is in a bad state, restarting wificond";
     return false;
   }
+  nodev_counter_ = 0;
   LOG(INFO) << "Pno scan started";
   pno_scan_started_ = true;
   return true;
