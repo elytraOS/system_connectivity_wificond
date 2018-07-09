@@ -63,6 +63,11 @@ interface IWificond {
     // Returrns null on failure.
     @nullable int[] getAvailableDFSChannels();
 
+    // Disable hostapd.
+    // Returns true if hosapd was successfully disabled,
+    // or is already disabled.
+    boolean disableHostapd();
+
     // Enable wpa_supplicant.
     // Returns true if supplicant was successfully enabled,
     // or is already enabled.

@@ -181,6 +181,11 @@ Status Server::tearDownInterfaces() {
   return Status::ok();
 }
 
+Status Server::disableHostapd(bool* success) {
+  *success = hostapd_manager_->StopHostapd();
+  return Status::ok();
+}
+
 Status Server::enableSupplicant(bool* success) {
   *success = supplicant_manager_->StartSupplicant();
   return Status::ok();

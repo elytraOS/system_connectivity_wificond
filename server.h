@@ -86,6 +86,7 @@ class Server : public android::net::wifi::BnWificond {
       bool* out_success) override;
 
   android::binder::Status tearDownInterfaces() override;
+  android::binder::Status disableHostapd(bool* success) override;
   android::binder::Status enableSupplicant(bool* success) override;
   android::binder::Status disableSupplicant(bool* success) override;
 
