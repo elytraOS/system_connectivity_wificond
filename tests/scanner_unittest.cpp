@@ -556,5 +556,18 @@ TEST_F(ScannerTest, TestGenerateSingleIntervalIfDeviceDoesNotSupportScanPlan) {
   EXPECT_EQ(kFakeScanIntervalMs, interval_setting.final_interval_ms);
 }
 
+TEST_F(ScannerTest, TestGetScanResultsOnInvalidatedScannerImpl) {
+  vector<NativeScanResult> scan_results;
+  scanner_impl_.reset(new ScannerImpl(kFakeInterfaceIndex,
+                                      scan_capabilities_, wiphy_features_,
+                                      &client_interface_impl_,
+                                      &scan_utils_, offload_service_utils_));
+  scanner_impl_->Invalidate();
+  EXPECT_CALL(scan_utils_, GetScanResult(_, _))
+      .Times(0)
+      .WillOnce(Return(true));
+  EXPECT_TRUE(scanner_impl_->getScanResults(&scan_results).isOk());
+}
+
 }  // namespace wificond
 }  // namespace android
