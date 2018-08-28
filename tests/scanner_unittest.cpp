@@ -19,8 +19,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <wifi_system_test/mock_interface_tool.h>
-#include <wifi_system_test/mock_supplicant_manager.h>
-
 #include "android/net/wifi/IWifiScannerImpl.h"
 #include "wificond/scanning/offload/offload_scan_utils.h"
 #include "wificond/scanning/scanner_impl.h"

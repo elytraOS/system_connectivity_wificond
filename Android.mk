@@ -38,7 +38,6 @@ LOCAL_SHARED_LIBRARIES := \
     libhidltransport \
     libminijail \
     libutils \
-    libwifi-system \
     libwifi-system-iface
 LOCAL_STATIC_LIBRARIES := \
     libwificond
@@ -79,7 +78,6 @@ LOCAL_SHARED_LIBRARIES := \
     libutils \
     libhidlbase \
     libhidltransport \
-    libwifi-system \
     libwifi-system-iface
 LOCAL_WHOLE_STATIC_LIBRARIES := \
     libwificond_ipc \
@@ -207,7 +205,6 @@ LOCAL_SRC_FILES := \
 LOCAL_STATIC_LIBRARIES := \
     libgmock \
     libgtest \
-    libwifi-system-test \
     libwifi-system-iface-test \
     libwificond \
     libwificond_nl
@@ -220,7 +217,6 @@ LOCAL_SHARED_LIBRARIES := \
     libhidlbase \
     liblog \
     libutils \
-    libwifi-system \
     libwifi-system-iface
 include $(BUILD_NATIVE_TEST)
 
@@ -236,7 +232,6 @@ LOCAL_SRC_FILES := \
     tests/integration/client_interface_test.cpp \
     tests/integration/life_cycle_test.cpp \
     tests/integration/scanner_test.cpp \
-    tests/integration/service_test.cpp \
     tests/main.cpp \
     tests/shell_unittest.cpp
 LOCAL_SHARED_LIBRARIES := \
@@ -244,7 +239,6 @@ LOCAL_SHARED_LIBRARIES := \
     libbinder \
     libcutils \
     libutils \
-    libwifi-system \
     libwifi-system-iface
 LOCAL_STATIC_LIBRARIES := \
     libgmock \

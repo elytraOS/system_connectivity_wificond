@@ -36,9 +36,7 @@ using android::IBinder;
 using android::net::wifi::IApInterface;
 using android::net::wifi::IClientInterface;
 using android::net::wifi::IInterfaceEventCallback;
-using android::wifi_system::HostapdManager;
 using android::wifi_system::InterfaceTool;
-using android::wifi_system::SupplicantManager;
 
 using std::endl;
 using std::placeholders::_1;
@@ -58,14 +56,10 @@ constexpr const char* kBaseIfName = "wlan0";
 }  // namespace
 
 Server::Server(unique_ptr<InterfaceTool> if_tool,
-               unique_ptr<SupplicantManager> supplicant_manager,
-               unique_ptr<HostapdManager> hostapd_manager,
                NetlinkUtils* netlink_utils,
                ScanUtils* scan_utils)
     : base_ifname_(kBaseIfName),
       if_tool_(std::move(if_tool)),
-      supplicant_manager_(std::move(supplicant_manager)),
-      hostapd_manager_(std::move(hostapd_manager)),
       netlink_utils_(netlink_utils),
       scan_utils_(scan_utils) {
 }
@@ -108,8 +102,7 @@ Status Server::createApInterface(const std::string& iface_name,
       interface.name,
       interface.index,
       netlink_utils_,
-      if_tool_.get(),
-      hostapd_manager_.get()));
+      if_tool_.get()));
   *created_interface = ap_interface->GetBinder();
   BroadcastApInterfaceReady(ap_interface->GetBinder());
   ap_interfaces_[iface_name] = std::move(ap_interface);
@@ -178,16 +171,6 @@ Status Server::tearDownInterfaces() {
 
   netlink_utils_->UnsubscribeRegDomainChange(wiphy_index_);
 
-  return Status::ok();
-}
-
-Status Server::enableSupplicant(bool* success) {
-  *success = supplicant_manager_->StartSupplicant();
-  return Status::ok();
-}
-
-Status Server::disableSupplicant(bool* success) {
-  *success = supplicant_manager_->StopSupplicant();
   return Status::ok();
 }
 

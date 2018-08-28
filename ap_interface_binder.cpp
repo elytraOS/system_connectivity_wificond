@@ -17,7 +17,6 @@
 #include "wificond/ap_interface_binder.h"
 
 #include <android-base/logging.h>
-#include <wifi_system/hostapd_manager.h>
 
 #include "wificond/ap_interface_impl.h"
 
@@ -73,28 +72,15 @@ void ApInterfaceBinder::NotifySoftApChannelSwitched(
   ap_interface_event_callback_->onSoftApChannelSwitched(frequency, bandwidth);
 }
 
-binder::Status ApInterfaceBinder::startHostapd(
+binder::Status ApInterfaceBinder::registerCallback(
     const sp<IApInterfaceEventCallback>& callback, bool* out_success) {
   *out_success = false;
   if (!impl_) {
-    LOG(WARNING) << "Cannot start hostapd on dead ApInterface.";
+    LOG(WARNING) << "Cannot register callback on dead ApInterface.";
     return binder::Status::ok();
   }
-  *out_success = impl_->StartHostapd();
-  if (*out_success) {
-    ap_interface_event_callback_ = callback;
-  }
-  return binder::Status::ok();
-}
-
-binder::Status ApInterfaceBinder::stopHostapd(bool* out_success) {
-  *out_success = false;
-  if (!impl_) {
-    LOG(WARNING) << "Cannot stop hostapd on dead ApInterface.";
-    return binder::Status::ok();
-  }
-  *out_success = impl_->StopHostapd();
-  ap_interface_event_callback_.clear();
+  *out_success = true;
+  ap_interface_event_callback_ = callback;
   return binder::Status::ok();
 }
 

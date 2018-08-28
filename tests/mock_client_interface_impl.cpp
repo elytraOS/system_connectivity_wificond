@@ -19,7 +19,6 @@
 #include <vector>
 
 #include <wifi_system/interface_tool.h>
-#include <wifi_system/supplicant_manager.h>
 
 #include "wificond/net/netlink_utils.h"
 #include "wificond/scanning/scan_utils.h"
