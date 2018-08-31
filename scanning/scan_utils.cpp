@@ -407,7 +407,7 @@ bool ScanUtils::StartScheduledScan(
     const std::vector<std::vector<uint8_t>>& scan_ssids,
     const std::vector<std::vector<uint8_t>>& match_ssids,
     const std::vector<uint32_t>& freqs,
-    int* error_code) {
+    int* error_code,bool is_sched_scan_relative_rssi) {
   NL80211Packet start_sched_scan(
       netlink_manager_->GetFamilyId(),
       NL80211_CMD_START_SCHED_SCAN,
@@ -441,15 +441,18 @@ bool ScanUtils::StartScheduledScan(
   start_sched_scan.AddAttribute(scan_match_attr);
 
   // We set 5g threshold for default and ajust threshold for 2g band.
-  struct nl80211_bss_select_rssi_adjust rssi_adjust;
-  rssi_adjust.band = NL80211_BAND_2GHZ;
-  rssi_adjust.delta = static_cast<int8_t>(rssi_threshold_2g - rssi_threshold_5g);
-  NL80211Attr<vector<uint8_t>> rssi_adjust_attr(
-      NL80211_ATTR_SCHED_SCAN_RSSI_ADJUST,
-      vector<uint8_t>(
-          reinterpret_cast<uint8_t*>(&rssi_adjust),
-          reinterpret_cast<uint8_t*>(&rssi_adjust) + sizeof(rssi_adjust)));
-  start_sched_scan.AddAttribute(rssi_adjust_attr);
+  // check sched_scan supported before set NL80211_ATTR_SCHED_SCAN_RSSI_ADJUST attribute.
+  if (is_sched_scan_relative_rssi) {
+      struct nl80211_bss_select_rssi_adjust rssi_adjust;
+      rssi_adjust.band = NL80211_BAND_2GHZ;
+      rssi_adjust.delta = static_cast<int8_t>(rssi_threshold_2g - rssi_threshold_5g);
+      NL80211Attr<vector<uint8_t>> rssi_adjust_attr(
+          NL80211_ATTR_SCHED_SCAN_RSSI_ADJUST,
+          vector<uint8_t>(
+              reinterpret_cast<uint8_t*>(&rssi_adjust),
+              reinterpret_cast<uint8_t*>(&rssi_adjust) + sizeof(rssi_adjust)));
+      start_sched_scan.AddAttribute(rssi_adjust_attr);
+  }
 
   // Append all attributes to the NL80211_CMD_START_SCHED_SCAN packet.
   start_sched_scan.AddAttribute(

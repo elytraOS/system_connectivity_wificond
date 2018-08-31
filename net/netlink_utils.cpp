@@ -84,6 +84,9 @@ WiphyFeatures::WiphyFeatures(uint32_t feature_flags,
   supports_high_accuracy_oneshot_scan =
       IsExtFeatureFlagSet(ext_feature_flags_bytes,
                           NL80211_EXT_FEATURE_HIGH_ACCURACY_SCAN);
+  supports_ext_sched_scan_relative_rssi =
+      IsExtFeatureFlagSet(ext_feature_flags_bytes,
+                          NL80211_EXT_FEATURE_SCHED_SCAN_RELATIVE_RSSI);
 }
 
 NetlinkUtils::NetlinkUtils(NetlinkManager* netlink_manager)
