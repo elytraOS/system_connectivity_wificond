@@ -35,6 +35,7 @@ class MlmeEventHandler {
   virtual void OnAssociate(std::unique_ptr<MlmeAssociateEvent> event) = 0;
   virtual void OnDisconnect(std::unique_ptr<MlmeDisconnectEvent> event) = 0;
   virtual void OnDisassociate(std::unique_ptr<MlmeDisassociateEvent> event) = 0;
+  virtual void OnChSwitchNotify();
 
 };
 

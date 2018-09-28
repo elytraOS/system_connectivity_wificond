@@ -45,6 +45,7 @@ class MlmeEventHandlerImpl : public MlmeEventHandler {
   void OnAssociate(std::unique_ptr<MlmeAssociateEvent> event) override;
   void OnDisconnect(std::unique_ptr<MlmeDisconnectEvent> event) override;
   void OnDisassociate(std::unique_ptr<MlmeDisassociateEvent> event) override;
+  void OnChSwitchNotify() override;
 
  private:
   ClientInterfaceImpl* client_interface_;

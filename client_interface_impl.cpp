@@ -90,6 +90,10 @@ void MlmeEventHandlerImpl::OnDisconnect(unique_ptr<MlmeDisconnectEvent> event) {
   client_interface_->bssid_.clear();
 }
 
+void MlmeEventHandlerImpl::OnChSwitchNotify() {
+  client_interface_->RefreshAssociateFreq();
+}
+
 void MlmeEventHandlerImpl::OnDisassociate(unique_ptr<MlmeDisassociateEvent> event) {
   client_interface_->is_associated_ = false;
   client_interface_->bssid_.clear();
