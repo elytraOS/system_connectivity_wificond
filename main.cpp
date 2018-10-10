@@ -30,6 +30,8 @@
 #include <libminijail.h>
 #include <utils/String16.h>
 #include <wifi_system/interface_tool.h>
+#include <hwbinder/ProcessState.h>
+#include <cutils/properties.h>
 
 #include "wificond/ipc_constants.h"
 #include "wificond/looper_backed_event_loop.h"
@@ -114,7 +116,22 @@ void OnHwBinderReadReady(int fd) {
   android::hardware::handleTransportPoll(fd);
 }
 
+#ifdef ARCH_ARM_32
+#define DEFAULT_WIFICOND_HW_BINDER_SIZE_KB 4
+size_t getHWBinderMmapSize() {
+  size_t value = 0;
+  value = property_get_int32("persist.vendor.wifi.wificond.hw.binder.size", DEFAULT_WIFICOND_HW_BINDER_SIZE_KB);
+  if (!value) value = DEFAULT_WIFICOND_HW_BINDER_SIZE_KB; // deafult to 1 page of 4 Kb
+
+  return 1024 * value;
+}
+#endif /* ARCH_ARM_32 */
+
+
 int main(int argc, char** argv) {
+#ifdef ARCH_ARM_32
+   android::hardware::ProcessState::initWithMmapSize(getHWBinderMmapSize());
+#endif /* ARCH_ARM_32 */
   android::base::InitLogging(argv, android::base::LogdLogger(android::base::SYSTEM));
   LOG(INFO) << "wificond is starting up...";
 

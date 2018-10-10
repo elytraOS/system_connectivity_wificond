@@ -18,6 +18,9 @@ wificond_parent_dir := $(LOCAL_PATH)/../
 wificond_includes := \
     $(wificond_parent_dir)
 
+ifeq ($(TARGET_ARCH),arm)
+    wificond_cpp_flags += -DARCH_ARM_32
+endif
 
 ###
 ### wificond daemon.
@@ -38,6 +41,7 @@ LOCAL_SHARED_LIBRARIES := \
     libhidltransport \
     libminijail \
     libutils \
+    libhwbinder\
     libwifi-system-iface
 LOCAL_STATIC_LIBRARIES := \
     libwificond

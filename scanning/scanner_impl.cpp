@@ -290,6 +290,8 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
   // Always request a low power scan for PNO, if device supports it.
   bool request_low_power = wiphy_features_.supports_low_power_oneshot_scan;
 
+  bool sched_scan_relative_rssi = wiphy_features_.supports_ext_sched_scan_relative_rssi;
+
   int error_code = 0;
   if (!scan_utils_->StartScheduledScan(interface_index_,
                                        GenerateIntervalSetting(pno_settings),
@@ -300,7 +302,8 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
                                        scan_ssids,
                                        match_ssids,
                                        freqs,
-                                       &error_code)) {
+                                       &error_code,
+                                       sched_scan_relative_rssi)) {
     LOG(ERROR) << "Failed to start pno scan";
     CHECK(error_code != ENODEV) << "Driver is in a bad state, restarting wificond";
     return false;

@@ -121,6 +121,9 @@ class ScanUtils {
   // Only BSSs match the |match_ssids| and |rssi_threshold| will be returned as
   // scan results.
   // Returns true on success.
+  // - |is_sched_scan_relative_rssi| is sched_scan flag for better BSS's from connected BSS.
+  // If |is_sched_scan_relative_rssi| is true, it will fill scan rssi adjust to
+  // get BSS's with better RSSI from connected BSS.
   virtual bool StartScheduledScan(
       uint32_t interface_index,
       const SchedScanIntervalSetting& interval_setting,
@@ -131,7 +134,7 @@ class ScanUtils {
       const std::vector<std::vector<uint8_t>>& scan_ssids,
       const std::vector<std::vector<uint8_t>>& match_ssids,
       const std::vector<uint32_t>& freqs,
-      int* error_code);
+      int* error_code, bool is_sched_scan_relative_rssi);
 
   // Stop existing scheduled scan on interface with index |interface_index|.
   // Returns true on success.
