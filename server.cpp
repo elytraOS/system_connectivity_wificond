@@ -174,11 +174,6 @@ Status Server::tearDownInterfaces() {
   return Status::ok();
 }
 
-Status Server::disableHostapd(bool* success) {
-  *success = hostapd_manager_->StopHostapd();
-  return Status::ok();
-}
-
 Status Server::GetClientInterfaces(vector<sp<IBinder>>* out_client_interfaces) {
   vector<sp<android::IBinder>> client_interfaces_binder;
   for (auto& it : client_interfaces_) {

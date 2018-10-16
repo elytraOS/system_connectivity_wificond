@@ -63,11 +63,6 @@ interface IWificond {
     // Returrns null on failure.
     @nullable int[] getAvailableDFSChannels();
 
-    // Disable hostapd.
-    // Returns true if hosapd was successfully disabled,
-    // or is already disabled.
-    boolean disableHostapd();
-
     // Register a callback to receive interface status updates.
     //
     // Multiple callbacks can be registered simultaneously.
