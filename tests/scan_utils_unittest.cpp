@@ -278,7 +278,8 @@ TEST_F(ScanUtilsTest, CanSendSchedScanRequest) {
       kFakeInterfaceIndex,
       SchedScanIntervalSetting(),
       kFake2gRssiThreshold, kFake5gRssiThreshold,
-      kFakeUseRandomMAC, kFakeRequestLowPower, {}, {}, {}, &errno_ignored));
+      kFakeUseRandomMAC, kFakeRequestLowPower, {}, {}, {}, &errno_ignored,
+      true));
   // TODO(b/34231420): Add validation of requested scan ssids, threshold,
   // and frequencies.
 }
@@ -296,7 +297,8 @@ TEST_F(ScanUtilsTest, CanHandleSchedScanRequestFailure) {
       kFakeInterfaceIndex,
       SchedScanIntervalSetting(),
       kFake2gRssiThreshold, kFake5gRssiThreshold,
-      kFakeUseRandomMAC, kFakeRequestLowPower, {}, {}, {}, &error_code));
+      kFakeUseRandomMAC, kFakeRequestLowPower, {}, {}, {}, &error_code,
+      true));
   EXPECT_EQ(kFakeErrorCode, error_code);
 }
 
@@ -315,7 +317,7 @@ TEST_F(ScanUtilsTest, CanSendSchedScanRequestForLowPowerScan) {
       kFakeInterfaceIndex,
       SchedScanIntervalSetting(),
       kFake2gRssiThreshold, kFake5gRssiThreshold,
-      false, true, {}, {}, {}, &errno_ignored);
+      false, true, {}, {}, {}, &errno_ignored, true);
 }
 
 TEST_F(ScanUtilsTest, CanSpecifyScanPlansForSchedScanRequest) {
@@ -337,7 +339,8 @@ TEST_F(ScanUtilsTest, CanSpecifyScanPlansForSchedScanRequest) {
       kFakeInterfaceIndex,
       interval_setting,
       kFake2gRssiThreshold, kFake5gRssiThreshold,
-      kFakeUseRandomMAC, kFakeRequestLowPower, {}, {}, {}, &errno_ignored);
+      kFakeUseRandomMAC, kFakeRequestLowPower, {}, {}, {}, &errno_ignored,
+      true);
 }
 
 TEST_F(ScanUtilsTest, CanSpecifySingleIntervalForSchedScanRequest) {
@@ -357,7 +360,8 @@ TEST_F(ScanUtilsTest, CanSpecifySingleIntervalForSchedScanRequest) {
       kFakeInterfaceIndex,
       interval_setting,
       kFake2gRssiThreshold, kFake5gRssiThreshold,
-      kFakeUseRandomMAC, kFakeRequestLowPower, {}, {}, {}, &errno_ignored);
+      kFakeUseRandomMAC, kFakeRequestLowPower, {}, {}, {}, &errno_ignored,
+      true);
 }
 
 TEST_F(ScanUtilsTest, CanPrioritizeLastSeenSinceBootNetlinkAttribute) {

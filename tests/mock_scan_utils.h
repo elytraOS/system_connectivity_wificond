@@ -49,7 +49,7 @@ class MockScanUtils : public ScanUtils {
       const std::vector<uint32_t>& freqs,
       int* error_code));
 
-  MOCK_METHOD10(StartScheduledScan, bool(
+  MOCK_METHOD11(StartScheduledScan, bool(
       uint32_t interface_index,
       const SchedScanIntervalSetting& interval_setting,
       int32_t rssi_threshold_2g,
@@ -59,7 +59,7 @@ class MockScanUtils : public ScanUtils {
       const std::vector<std::vector<uint8_t>>& scan_ssids,
       const std::vector<std::vector<uint8_t>>& match_ssids,
       const std::vector<uint32_t>& freqs,
-      int* error_code));
+      int* error_code, bool is_sched_scan_relative_rssi));
 
 };  // class MockScanUtils
 
