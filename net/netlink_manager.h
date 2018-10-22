@@ -17,9 +17,12 @@
 #ifndef WIFICOND_NET_NETLINK_MANAGER_H_
 #define WIFICOND_NET_NETLINK_MANAGER_H_
 
+#include <array>
 #include <functional>
 #include <map>
 #include <memory>
+
+#include <linux/if_ether.h>
 
 #include <android-base/macros.h>
 #include <android-base/unique_fd.h>
@@ -113,7 +116,7 @@ enum StationEvent {
 // |mac_address| is the station mac address associated with this event.
 typedef std::function<void(
     StationEvent event,
-    const std::vector<uint8_t>& mac_address)> OnStationEventHandler;
+    const std::array<uint8_t, ETH_ALEN>& mac_address)> OnStationEventHandler;
 
 class NetlinkManager {
  public:

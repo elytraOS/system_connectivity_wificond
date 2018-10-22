@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+#include <array>
 #include <memory>
 #include <vector>
+
+#include <linux/if_ether.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -28,6 +31,7 @@
 #include "wificond/ap_interface_impl.h"
 
 using android::wifi_system::MockInterfaceTool;
+using std::array;
 using std::placeholders::_1;
 using std::placeholders::_2;
 using std::unique_ptr;
@@ -45,7 +49,7 @@ namespace {
 
 const char kTestInterfaceName[] = "testwifi0";
 const uint32_t kTestInterfaceIndex = 42;
-const uint8_t kFakeMacAddress[] = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
+const array<uint8_t, ETH_ALEN> kFakeMacAddress = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
 
 void CaptureStationEventHandler(
     OnStationEventHandler* out_handler,
@@ -95,8 +99,7 @@ TEST_F(ApInterfaceImplTest, CanGetNumberOfAssociatedStations) {
         netlink_utils_.get(),
         if_tool_.get()));
 
-  vector<uint8_t> fake_mac_address(kFakeMacAddress,
-                                   kFakeMacAddress + sizeof(kFakeMacAddress));
+  array<uint8_t, ETH_ALEN> fake_mac_address = kFakeMacAddress;
   EXPECT_EQ(0, ap_interface_->GetNumberOfAssociatedStations());
   handler(NEW_STATION, fake_mac_address);
   EXPECT_EQ(1, ap_interface_->GetNumberOfAssociatedStations());
@@ -120,8 +123,7 @@ TEST_F(ApInterfaceImplTest, CallbackIsCalledOnNumAssociatedStationsChanged) {
   EXPECT_TRUE(binder->registerCallback(callback, &out_success).isOk());
   EXPECT_TRUE(out_success);
 
-  vector<uint8_t> fake_mac_address(kFakeMacAddress,
-                                   kFakeMacAddress + sizeof(kFakeMacAddress));
+  array<uint8_t, ETH_ALEN> fake_mac_address = kFakeMacAddress;
   EXPECT_CALL(*callback, onNumAssociatedStationsChanged(1));
   handler(NEW_STATION, fake_mac_address);
   EXPECT_CALL(*callback, onNumAssociatedStationsChanged(2));

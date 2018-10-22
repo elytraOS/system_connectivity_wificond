@@ -25,10 +25,10 @@
 
 using android::net::wifi::IApInterface;
 using android::wifi_system::InterfaceTool;
+using std::array;
 using std::endl;
 using std::string;
 using std::unique_ptr;
-using std::vector;
 
 using namespace std::placeholders;
 
@@ -80,8 +80,9 @@ void ApInterfaceImpl::Dump(std::stringstream* ss) const {
   *ss << "------- Dump End -------" << endl;
 }
 
-void ApInterfaceImpl::OnStationEvent(StationEvent event,
-                                     const vector<uint8_t>& mac_address) {
+void ApInterfaceImpl::OnStationEvent(
+    StationEvent event,
+    const array<uint8_t, ETH_ALEN>& mac_address) {
   if (event == NEW_STATION) {
     LOG(INFO) << "New station "
               << LoggingUtils::GetMacString(mac_address)

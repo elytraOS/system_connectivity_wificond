@@ -17,9 +17,11 @@
 #include "android/net/wifi/IWifiScannerImpl.h"
 #include "wificond/scanning/scan_utils.h"
 
+#include <array>
 #include <vector>
 
 #include <linux/netlink.h>
+#include <linux/if_ether.h>
 
 #include <android-base/logging.h>
 
@@ -31,6 +33,7 @@
 using android::net::wifi::IWifiScannerImpl;
 using com::android::server::wifi::wificond::NativeScanResult;
 using com::android::server::wifi::wificond::RadioChainInfo;
+using std::array;
 using std::unique_ptr;
 using std::vector;
 
@@ -134,7 +137,7 @@ bool ScanUtils::ParseScanResult(unique_ptr<const NL80211Packet> packet,
   }
   NL80211NestedAttr bss(0);
   if (packet->GetAttribute(NL80211_ATTR_BSS, &bss)) {
-    vector<uint8_t> bssid;
+    array<uint8_t, ETH_ALEN> bssid;
     if (!bss.GetAttributeValue(NL80211_BSS_BSSID, &bssid)) {
       LOG(ERROR) << "Failed to get BSSID from scan result packet";
       return false;

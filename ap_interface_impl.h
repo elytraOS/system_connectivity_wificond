@@ -17,8 +17,10 @@
 #ifndef WIFICOND_AP_INTERFACE_IMPL_H_
 #define WIFICOND_AP_INTERFACE_IMPL_H_
 
+#include <array>
 #include <string>
-#include <vector>
+
+#include <linux/if_ether.h>
 
 #include <android-base/macros.h>
 #include <wifi_system/interface_tool.h>
@@ -63,7 +65,7 @@ class ApInterfaceImpl {
   int number_of_associated_stations_;
 
   void OnStationEvent(StationEvent event,
-                      const std::vector<uint8_t>& mac_address);
+                      const std::array<uint8_t, ETH_ALEN>& mac_address);
 
   void OnChannelSwitchEvent(uint32_t frequency, ChannelBandwidth bandwidth);
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <array>
 #include <memory>
 
 #include <gmock/gmock.h>
@@ -53,9 +54,9 @@ const char kFateInterfaceNameInvalid[] = "testif-invalid";
 const uint32_t kFakeInterfaceIndex = 34;
 const uint32_t kFakeInterfaceIndex1 = 36;
 const uint32_t kFakeInterfaceIndexP2p = 36;
-const uint8_t kFakeInterfaceMacAddress[] = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
-const uint8_t kFakeInterfaceMacAddress1[] = {0x05, 0x04, 0xef, 0x27, 0x12, 0xff};
-const uint8_t kFakeInterfaceMacAddressP2p[] = {0x15, 0x24, 0xef, 0x27, 0x12, 0xff};
+const std::array<uint8_t, ETH_ALEN> kFakeInterfaceMacAddress = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
+const std::array<uint8_t, ETH_ALEN> kFakeInterfaceMacAddress1 = {0x05, 0x04, 0xef, 0x27, 0x12, 0xff};
+const std::array<uint8_t, ETH_ALEN> kFakeInterfaceMacAddressP2p = {0x15, 0x24, 0xef, 0x27, 0x12, 0xff};
 
 // This is a helper function to mock the behavior of
 // NetlinkUtils::GetInterfaces().
@@ -98,23 +99,17 @@ class ServerTest : public ::testing::Test {
       InterfaceInfo(
           kFakeInterfaceIndex,
           std::string(kFakeInterfaceName),
-          vector<uint8_t>(
-              kFakeInterfaceMacAddress,
-              kFakeInterfaceMacAddress + sizeof(kFakeInterfaceMacAddress))),
+          std::array<uint8_t, ETH_ALEN>(kFakeInterfaceMacAddress)),
       // AP Interface
       InterfaceInfo(
           kFakeInterfaceIndex1,
           std::string(kFakeInterfaceName1),
-          vector<uint8_t>(
-              kFakeInterfaceMacAddress1,
-              kFakeInterfaceMacAddress1 + sizeof(kFakeInterfaceMacAddress1))),
+          std::array<uint8_t, ETH_ALEN>(kFakeInterfaceMacAddress1)),
       // p2p interface
       InterfaceInfo(
           kFakeInterfaceIndexP2p,
           std::string(kFakeInterfaceNameP2p),
-           vector<uint8_t>(
-               kFakeInterfaceMacAddressP2p,
-               kFakeInterfaceMacAddressP2p + sizeof(kFakeInterfaceMacAddressP2p)))
+          std::array<uint8_t, ETH_ALEN>(kFakeInterfaceMacAddressP2p))
   };
 
   Server server_{unique_ptr<InterfaceTool>(if_tool_),
