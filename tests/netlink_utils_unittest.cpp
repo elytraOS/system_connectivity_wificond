@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
@@ -65,8 +66,8 @@ const char kFakeInterfaceName[] = "testif0";
 const char kFakeCountryCode[] = "US";
 const uint32_t kFakeInterfaceIndex = 34;
 const uint32_t kFakeInterfaceIndex1 = 36;
-const uint8_t kFakeInterfaceMacAddress[] = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
-const uint8_t kFakeInterfaceMacAddress1[] = {0x05, 0x04, 0xef, 0x27, 0x12, 0xff};
+const std::array<uint8_t, ETH_ALEN> kFakeInterfaceMacAddress = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
+const std::array<uint8_t, ETH_ALEN> kFakeInterfaceMacAddress1 = {0x05, 0x04, 0xef, 0x27, 0x12, 0xff};
 const uint8_t kFakeExtFeaturesForLowSpanScan[] = {0x0, 0x0, 0x40};
 const uint8_t kFakeExtFeaturesForLowPowerScan[] = {0x0, 0x0, 0x80};
 const uint8_t kFakeExtFeaturesForHighAccuracy[] = {0x0, 0x0, 0x0, 0x1};
@@ -367,11 +368,8 @@ TEST_F(NetlinkUtilsTest, CanGetInterfaces) {
   NL80211Attr<uint32_t> if_index_attr(NL80211_ATTR_IFINDEX, kFakeInterfaceIndex);
   new_interface.AddAttribute(if_index_attr);
   // Insert mac address attribute.
-  std::vector<uint8_t> if_mac_addr;
-  if_mac_addr.assign(
-      kFakeInterfaceMacAddress,
-      kFakeInterfaceMacAddress + sizeof(kFakeInterfaceMacAddress));
-  NL80211Attr<vector<uint8_t>> if_mac_attr(NL80211_ATTR_MAC, if_mac_addr);
+  std::array<uint8_t, ETH_ALEN> if_mac_addr = kFakeInterfaceMacAddress;
+  NL80211Attr<std::array<uint8_t, ETH_ALEN>> if_mac_attr(NL80211_ATTR_MAC, if_mac_addr);
   new_interface.AddAttribute(if_mac_attr);
 
   // Mock a valid response from kernel.
@@ -409,12 +407,9 @@ TEST_F(NetlinkUtilsTest, SkipsPseudoDevicesWhenGetInterfaces) {
       NL80211_ATTR_IFNAME, string(kFakeInterfaceName)));
   expected_interface.AddAttribute(NL80211Attr<uint32_t>(
       NL80211_ATTR_IFINDEX, kFakeInterfaceIndex));
-  std::vector<uint8_t> if_mac_addr;
-  if_mac_addr.assign(
-      kFakeInterfaceMacAddress,
-      kFakeInterfaceMacAddress + sizeof(kFakeInterfaceMacAddress));
+  std::array<uint8_t, ETH_ALEN> if_mac_addr = kFakeInterfaceMacAddress;
   expected_interface.AddAttribute(
-      NL80211Attr<vector<uint8_t>>(NL80211_ATTR_MAC, if_mac_addr));
+      NL80211Attr<std::array<uint8_t, ETH_ALEN>>(NL80211_ATTR_MAC, if_mac_addr));
 
   // Kernel can send us the pseduo interface packet first
   vector<NL80211Packet> response = {psuedo_interface, expected_interface};
@@ -443,11 +438,9 @@ TEST_F(NetlinkUtilsTest, HandleP2p0WhenGetInterfaces) {
   new_interface.AddAttribute(
       NL80211Attr<uint32_t>(NL80211_ATTR_IFINDEX, kFakeInterfaceIndex));
   // Insert mac address attribute.
-  std::vector<uint8_t> if_mac_addr(
-      kFakeInterfaceMacAddress,
-      kFakeInterfaceMacAddress + sizeof(kFakeInterfaceMacAddress));
+  std::array<uint8_t, ETH_ALEN> if_mac_addr = kFakeInterfaceMacAddress;
   new_interface.AddAttribute(
-      NL80211Attr<vector<uint8_t>>(NL80211_ATTR_MAC, if_mac_addr));
+      NL80211Attr<std::array<uint8_t, ETH_ALEN>>(NL80211_ATTR_MAC, if_mac_addr));
 
   // Create a new interface packet for p2p0.
   NL80211Packet new_interface_p2p0(
@@ -463,11 +456,9 @@ TEST_F(NetlinkUtilsTest, HandleP2p0WhenGetInterfaces) {
   new_interface_p2p0.AddAttribute(
       NL80211Attr<uint32_t>(NL80211_ATTR_IFINDEX, kFakeInterfaceIndex1));
   // Insert mac address attribute.
-  std::vector<uint8_t> if_mac_addr_p2p(
-      kFakeInterfaceMacAddress1,
-      kFakeInterfaceMacAddress1 + sizeof(kFakeInterfaceMacAddress1));
+  std::array<uint8_t, ETH_ALEN> if_mac_addr_p2p = kFakeInterfaceMacAddress1;
   new_interface_p2p0.AddAttribute(
-      NL80211Attr<vector<uint8_t>>(NL80211_ATTR_MAC, if_mac_addr_p2p));
+      NL80211Attr<std::array<uint8_t, ETH_ALEN>>(NL80211_ATTR_MAC, if_mac_addr_p2p));
 
   // Mock response from kernel, including 2 interfaces.
   vector<NL80211Packet> response = {new_interface_p2p0, new_interface};

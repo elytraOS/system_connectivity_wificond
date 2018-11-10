@@ -17,7 +17,10 @@
 #ifndef WIFICOND_CLIENT_INTERFACE_IMPL_H_
 #define WIFICOND_CLIENT_INTERFACE_IMPL_H_
 
+#include <array>
 #include <string>
+
+#include <linux/if_ether.h>
 
 #include <android-base/macros.h>
 #include <utils/StrongPointer.h>
@@ -62,7 +65,7 @@ class ClientInterfaceImpl {
       uint32_t wiphy_index,
       const std::string& interface_name,
       uint32_t interface_index,
-      const std::vector<uint8_t>& interface_mac_addr,
+      const std::array<uint8_t, ETH_ALEN>& interface_mac_addr,
       android::wifi_system::InterfaceTool* if_tool,
       NetlinkUtils* netlink_utils,
       ScanUtils* scan_utils);
@@ -73,10 +76,10 @@ class ClientInterfaceImpl {
 
   bool GetPacketCounters(std::vector<int32_t>* out_packet_counters);
   bool SignalPoll(std::vector<int32_t>* out_signal_poll_results);
-  const std::vector<uint8_t>& GetMacAddress();
+  const std::array<uint8_t, ETH_ALEN>& GetMacAddress();
   const std::string& GetInterfaceName() const { return interface_name_; }
   const android::sp<ScannerImpl> GetScanner() { return scanner_; };
-  bool SetMacAddress(const ::std::vector<uint8_t>& mac);
+  bool SetMacAddress(const std::array<uint8_t, ETH_ALEN>& mac);
   virtual bool IsAssociated() const;
   void Dump(std::stringstream* ss) const;
 
@@ -86,7 +89,7 @@ class ClientInterfaceImpl {
   const uint32_t wiphy_index_;
   const std::string interface_name_;
   const uint32_t interface_index_;
-  const std::vector<uint8_t> interface_mac_addr_;
+  const std::array<uint8_t, ETH_ALEN> interface_mac_addr_;
   android::wifi_system::InterfaceTool* const if_tool_;
   NetlinkUtils* const netlink_utils_;
   ScanUtils* const scan_utils_;
@@ -97,7 +100,7 @@ class ClientInterfaceImpl {
 
   // Cached information for this connection.
   bool is_associated_;
-  std::vector<uint8_t> bssid_;
+  std::array<uint8_t, ETH_ALEN> bssid_;
   uint32_t associate_freq_;
 
   // Capability information for this wiphy/interface.

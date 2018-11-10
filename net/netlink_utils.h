@@ -17,8 +17,11 @@
 #ifndef WIFICOND_NET_NETLINK_UTILS_H_
 #define WIFICOND_NET_NETLINK_UTILS_H_
 
+#include <array>
 #include <string>
 #include <vector>
+
+#include <linux/if_ether.h>
 
 #include <android-base/macros.h>
 
@@ -30,18 +33,18 @@ namespace wificond {
 
 struct InterfaceInfo {
   InterfaceInfo() = default;
-  InterfaceInfo(uint32_t index_,
-                const std::string name_,
-                const std::vector<uint8_t> mac_address_)
-      : index(index_),
-        name(name_),
-        mac_address(mac_address_) {}
+  InterfaceInfo(uint32_t index,
+                const std::string& name,
+                const std::array<uint8_t, ETH_ALEN>& mac_address)
+      : index(index),
+        name(name),
+        mac_address(mac_address) {}
   // Index of this interface.
   uint32_t index;
   // Name of this interface.
   std::string name;
   // MAC address of this interface.
-  std::vector<uint8_t> mac_address;
+  std::array<uint8_t, ETH_ALEN> mac_address;
 };
 
 struct BandInfo {
@@ -208,7 +211,7 @@ class NetlinkUtils {
   // |*out_station_info]| is the struct of available station information.
   // Returns true on success.
   virtual bool GetStationInfo(uint32_t interface_index,
-                              const std::vector<uint8_t>& mac_address,
+                              const std::array<uint8_t, ETH_ALEN>& mac_address,
                               StationInfo* out_station_info);
 
   // Get a bitmap for nl80211 protocol features,

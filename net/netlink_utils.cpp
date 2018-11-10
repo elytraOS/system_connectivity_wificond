@@ -16,6 +16,8 @@
 
 #include "wificond/net/netlink_utils.h"
 
+#include <array>
+#include <algorithm>
 #include <bitset>
 #include <map>
 #include <string>
@@ -29,6 +31,7 @@
 #include "wificond/net/mlme_event_handler.h"
 #include "wificond/net/nl80211_packet.h"
 
+using std::array;
 using std::make_pair;
 using std::make_unique;
 using std::map;
@@ -290,7 +293,7 @@ bool NetlinkUtils::GetInterfaces(uint32_t wiphy_index,
       continue;
     }
 
-    vector<uint8_t> if_mac_addr;
+    array<uint8_t, ETH_ALEN> if_mac_addr;
     if (!packet->GetAttributeValue(NL80211_ATTR_MAC, &if_mac_addr)) {
       LOG(WARNING) << "Failed to get interface mac address";
       continue;
@@ -549,7 +552,7 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
 }
 
 bool NetlinkUtils::GetStationInfo(uint32_t interface_index,
-                                  const vector<uint8_t>& mac_address,
+                                  const array<uint8_t, ETH_ALEN>& mac_address,
                                   StationInfo* out_station_info) {
   NL80211Packet get_station(
       netlink_manager_->GetFamilyId(),
@@ -558,8 +561,8 @@ bool NetlinkUtils::GetStationInfo(uint32_t interface_index,
       getpid());
   get_station.AddAttribute(NL80211Attr<uint32_t>(NL80211_ATTR_IFINDEX,
                                                  interface_index));
-  get_station.AddAttribute(NL80211Attr<vector<uint8_t>>(NL80211_ATTR_MAC,
-                                                        mac_address));
+  get_station.AddAttribute(NL80211Attr<array<uint8_t, ETH_ALEN>>(
+      NL80211_ATTR_MAC, mac_address));
 
   unique_ptr<const NL80211Packet> response;
   if (!netlink_manager_->SendMessageAndGetSingleResponse(get_station,

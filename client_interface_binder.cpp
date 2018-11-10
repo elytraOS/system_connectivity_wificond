@@ -16,7 +16,12 @@
 
 #include "wificond/client_interface_binder.h"
 
+#include <algorithm>
 #include <vector>
+
+#include <linux/if_ether.h>
+
+#include <android-base/logging.h>
 
 #include <binder/Status.h>
 
@@ -58,7 +63,8 @@ Status ClientInterfaceBinder::getMacAddress(vector<uint8_t>* out_mac_address) {
   if (impl_ == nullptr) {
     return Status::ok();
   }
-  *out_mac_address = impl_->GetMacAddress();
+  const std::array<uint8_t, ETH_ALEN>& mac = impl_->GetMacAddress();
+  *out_mac_address = vector<uint8_t>(mac.begin(), mac.end());
   return Status::ok();
 }
 
@@ -82,7 +88,18 @@ Status ClientInterfaceBinder::getWifiScannerImpl(
 
 
 Status ClientInterfaceBinder::setMacAddress(const vector<uint8_t>& mac, bool* success) {
-  *success = impl_ && impl_->SetMacAddress(mac);
+  if (impl_ == nullptr) {
+    *success = false;
+    return Status::ok();
+  }
+  if (mac.size() != ETH_ALEN) {
+    LOG(ERROR) << "Invalid MAC length " << mac.size();
+    *success = false;
+    return Status::ok();
+  }
+  std::array<uint8_t, ETH_ALEN> mac_array;
+  std::copy_n(mac.begin(), ETH_ALEN, mac_array.begin());
+  *success = impl_->SetMacAddress(mac_array);
   return Status::ok();
 }
 

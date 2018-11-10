@@ -18,8 +18,6 @@
 
 #include <vector>
 
-#include <linux/if_ether.h>
-
 #include <android-base/logging.h>
 
 #include "wificond/client_interface_binder.h"
@@ -61,7 +59,7 @@ void MlmeEventHandlerImpl::OnConnect(unique_ptr<MlmeConnectEvent> event) {
       LOG(INFO) << "Connect timeout";
     }
     client_interface_->is_associated_ = false;
-    client_interface_->bssid_.clear();
+    client_interface_->bssid_.fill(0);
   }
 }
 
@@ -81,18 +79,18 @@ void MlmeEventHandlerImpl::OnAssociate(unique_ptr<MlmeAssociateEvent> event) {
       LOG(INFO) << "Associate timeout";
     }
     client_interface_->is_associated_ = false;
-    client_interface_->bssid_.clear();
+    client_interface_->bssid_.fill(0);
   }
 }
 
 void MlmeEventHandlerImpl::OnDisconnect(unique_ptr<MlmeDisconnectEvent> event) {
   client_interface_->is_associated_ = false;
-  client_interface_->bssid_.clear();
+  client_interface_->bssid_.fill(0);
 }
 
 void MlmeEventHandlerImpl::OnDisassociate(unique_ptr<MlmeDisassociateEvent> event) {
   client_interface_->is_associated_ = false;
-  client_interface_->bssid_.clear();
+  client_interface_->bssid_.fill(0);
 }
 
 
@@ -100,7 +98,7 @@ ClientInterfaceImpl::ClientInterfaceImpl(
     uint32_t wiphy_index,
     const std::string& interface_name,
     uint32_t interface_index,
-    const std::vector<uint8_t>& interface_mac_addr,
+    const std::array<uint8_t, ETH_ALEN>& interface_mac_addr,
     InterfaceTool* if_tool,
     NetlinkUtils* netlink_utils,
     ScanUtils* scan_utils)
@@ -211,21 +209,16 @@ bool ClientInterfaceImpl::SignalPoll(vector<int32_t>* out_signal_poll_results) {
   return true;
 }
 
-const vector<uint8_t>& ClientInterfaceImpl::GetMacAddress() {
+const std::array<uint8_t, ETH_ALEN>& ClientInterfaceImpl::GetMacAddress() {
   return interface_mac_addr_;
 }
 
-bool ClientInterfaceImpl::SetMacAddress(const ::std::vector<uint8_t>& mac) {
-  if (mac.size() != ETH_ALEN) {
-    LOG(ERROR) << "Invalid MAC length " << mac.size();
-    return false;
-  }
+bool ClientInterfaceImpl::SetMacAddress(const std::array<uint8_t, ETH_ALEN>& mac) {
   if (!if_tool_->SetWifiUpState(false)) {
     LOG(ERROR) << "SetWifiUpState(false) failed.";
     return false;
   }
-  if (!if_tool_->SetMacAddress(interface_name_.c_str(),
-      {{mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]}})) {
+  if (!if_tool_->SetMacAddress(interface_name_.c_str(), mac)) {
     LOG(ERROR) << "SetMacAddress(" << interface_name_ << ", "
                << LoggingUtils::GetMacString(mac) << ") failed.";
     return false;

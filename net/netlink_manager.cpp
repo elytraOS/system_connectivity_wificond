@@ -33,6 +33,7 @@
 #include "net/nl80211_packet.h"
 
 using android::base::unique_fd;
+using std::array;
 using std::placeholders::_1;
 using std::string;
 using std::unique_ptr;
@@ -534,7 +535,7 @@ void NetlinkManager::BroadcastHandler(unique_ptr<const NL80211Packet> packet) {
     }
     const auto handler = on_station_event_handler_.find(if_index);
     if (handler != on_station_event_handler_.end()) {
-      vector<uint8_t> mac_address;
+      array<uint8_t, ETH_ALEN> mac_address;
       if (!packet->GetAttributeValue(NL80211_ATTR_MAC, &mac_address)) {
         LOG(WARNING) << "Failed to get mac address from station event";
         return;
