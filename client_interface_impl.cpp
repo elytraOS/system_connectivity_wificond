@@ -41,6 +41,8 @@ using std::string;
 using std::unique_ptr;
 using std::vector;
 
+using namespace std::placeholders;
+
 namespace android {
 namespace wificond {
 
@@ -122,7 +124,9 @@ ClientInterfaceImpl::ClientInterfaceImpl(
   netlink_utils_->SubscribeMlmeEvent(
       interface_index_,
       mlme_event_handler_.get());
-  if (!netlink_utils_->GetWiphyInfo(wiphy_index_,
+    netlink_utils_->SubscribeChannelSwitchEvent(interface_index_,
+	std::bind(&ClientInterfaceImpl::OnChannelSwitchEvent, this, _1));
+if (!netlink_utils_->GetWiphyInfo(wiphy_index_,
                                &band_info_,
                                &scan_capabilities_,
                                &wiphy_features_)) {
@@ -255,6 +259,16 @@ bool ClientInterfaceImpl::RefreshAssociateFreq() {
     }
   }
   return false;
+}
+
+bool ClientInterfaceImpl::OnChannelSwitchEvent(uint32_t frequency) {
+    if(!frequency) {
+	LOG(ERROR) << "Frequency value is null";
+	return false;
+    }
+    LOG(INFO) << "New channel on frequency: " << frequency;
+    associate_freq_ = frequency;
+    return true;
 }
 
 bool ClientInterfaceImpl::IsAssociated() const {

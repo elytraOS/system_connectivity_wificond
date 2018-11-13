@@ -106,6 +106,8 @@ class ClientInterfaceImpl {
   ScanCapabilities scan_capabilities_;
   WiphyFeatures wiphy_features_;
 
+  bool OnChannelSwitchEvent(uint32_t frequency);
+
   DISALLOW_COPY_AND_ASSIGN(ClientInterfaceImpl);
   friend class MlmeEventHandlerImpl;
 };

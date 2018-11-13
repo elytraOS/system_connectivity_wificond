@@ -516,8 +516,7 @@ void NetlinkManager::BroadcastHandler(unique_ptr<const NL80211Packet> packet) {
       command == NL80211_CMD_ASSOCIATE ||
       command == NL80211_CMD_ROAM ||
       command == NL80211_CMD_DISCONNECT ||
-      command == NL80211_CMD_DISASSOCIATE ||
-      command == NL80211_CMD_CH_SWITCH_NOTIFY) {
+      command == NL80211_CMD_DISASSOCIATE) {
       OnMlmeEvent(std::move(packet));
      return;
   }
