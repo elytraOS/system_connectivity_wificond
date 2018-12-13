@@ -596,7 +596,7 @@ TEST_F(ScannerTest, TestStartPnoScanWithNonEmptyFrequencyList) {
   expected_freqs.push_back(2412);
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_freqs), _)).
+      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_freqs), _, _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -638,7 +638,7 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListNoDuplicates) {
   expected_freqs.push_back(2462);
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_freqs), _)).
+      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_freqs), _, _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -677,7 +677,7 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListFallbackMechanism) {
   vector<uint32_t> expected_frequencies(default_frequencies.begin(), default_frequencies.end());
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_frequencies), _)).
+      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_frequencies), _, _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
   EXPECT_TRUE(success);
