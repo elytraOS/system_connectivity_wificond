@@ -683,5 +683,38 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListFallbackMechanism) {
   EXPECT_TRUE(success);
 }
 
+// Verify that when there is no frequency data all pno networks, an empty list is passed into
+// StartScheduledScan in order to scan all frequencies.
+TEST_F(ScannerTest, TestStartPnoScanEmptyList) {
+  bool success = false;
+  ScanCapabilities scan_capabilities_test_frequencies(
+      1 /* max_num_scan_ssids */,
+      1 /* max_num_sched_scan_ssids */,
+      2 /* max_match_sets */,
+      0,
+      kFakeScanIntervalMs * PnoSettings::kSlowScanIntervalMultiplier / 1000,
+      PnoSettings::kFastScanIterations);
+  EXPECT_CALL(*offload_service_utils_, IsOffloadScanSupported())
+        .Times(1)
+        .WillRepeatedly(Return(false));
+  ScannerImpl scanner_impl(kFakeInterfaceIndex, scan_capabilities_test_frequencies,
+                           wiphy_features_, &client_interface_impl_,
+                           &scan_utils_, offload_service_utils_);
+
+  PnoSettings pno_settings;
+  PnoNetwork network;
+  PnoNetwork network2;
+  network.is_hidden_ = false;
+  network2.is_hidden_ = false;
+  pno_settings.pno_networks_.push_back(network);
+  pno_settings.pno_networks_.push_back(network2);
+  EXPECT_CALL(
+      scan_utils_,
+      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(vector<uint32_t>{}), _)).
+          WillOnce(Return(true));
+  EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
+  EXPECT_TRUE(success);
+}
+
 }  // namespace wificond
 }  // namespace android
