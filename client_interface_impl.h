@@ -48,6 +48,7 @@ class MlmeEventHandlerImpl : public MlmeEventHandler {
   void OnAssociate(std::unique_ptr<MlmeAssociateEvent> event) override;
   void OnDisconnect(std::unique_ptr<MlmeDisconnectEvent> event) override;
   void OnDisassociate(std::unique_ptr<MlmeDisassociateEvent> event) override;
+  void OnChSwitchNotify() override;
 
  private:
   ClientInterfaceImpl* client_interface_;
@@ -107,6 +108,8 @@ class ClientInterfaceImpl {
   BandInfo band_info_;
   ScanCapabilities scan_capabilities_;
   WiphyFeatures wiphy_features_;
+
+  bool OnChannelSwitchEvent(uint32_t frequency);
 
   DISALLOW_COPY_AND_ASSIGN(ClientInterfaceImpl);
   friend class MlmeEventHandlerImpl;

@@ -638,6 +638,10 @@ void NetlinkManager::OnMlmeEvent(unique_ptr<const NL80211Packet> packet) {
     }
     return;
   }
+  if (command == NL80211_CMD_CH_SWITCH_NOTIFY) {
+    handler->second->OnChSwitchNotify();
+    return;
+  }
 
 }
 
