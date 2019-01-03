@@ -710,7 +710,7 @@ TEST_F(ScannerTest, TestStartPnoScanEmptyList) {
   pno_settings.pno_networks_.push_back(network2);
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(vector<uint32_t>{}), _)).
+      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(vector<uint32_t>{}), _, _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
   EXPECT_TRUE(success);
