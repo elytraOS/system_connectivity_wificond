@@ -60,6 +60,10 @@ bool IsScanTypeSupported(int scan_type, const WiphyFeatures& wiphy_features) {
   }
   return {};
 }
+
+constexpr const int kPercentNetworksWithFreq = 30;
+constexpr const int kPnoScanDefaultFreqs[] = {2412, 2417, 2422, 2427, 2432, 2437, 2447, 2452,
+    2457, 2462, 5180, 5200, 5220, 5240, 5745, 5765, 5785, 5805};
 } // namespace
 
 namespace android {
@@ -276,11 +280,11 @@ void ScannerImpl::ParsePnoSettings(const PnoSettings& pno_settings,
     }
   }
 
-  // Also scan the default frequencies if more than 30% of networks don't have frequency data.
-  if (num_networks_no_freqs * 100 / match_ssids->size() > 30) {
-      std::set<int32_t> default_frequencies = {2412, 2417, 2422, 2427, 2432, 2437, 2447, 2452, 2457,
-          2462, 5180, 5200, 5220, 5240, 5745, 5765, 5785, 5805};
-      unique_frequencies.insert(default_frequencies.begin(), default_frequencies.end());
+  // Also scan the default frequencies if there is frequency data passed down but more than 30% of
+  // networks don't have frequency data.
+  if (unique_frequencies.size() > 0 && num_networks_no_freqs * 100 / match_ssids->size()
+      > kPercentNetworksWithFreq) {
+    unique_frequencies.insert(std::begin(kPnoScanDefaultFreqs), std::end(kPnoScanDefaultFreqs));
   }
   for (const auto& frequency : unique_frequencies) {
     freqs->push_back(frequency);
