@@ -69,7 +69,7 @@ bool MockGetInterfacesResponse(
     bool mock_return_value,
     uint32_t wiphy_index,
     vector<InterfaceInfo>* response) {
-  for (auto interface : mock_response) {
+  for (const auto& interface : mock_response) {
     response->emplace_back(interface);
   }
   return mock_return_value;

@@ -31,13 +31,11 @@ using android::binder::Status;
 using android::net::wifi::IPnoScanEvent;
 using android::net::wifi::IScanEvent;
 using android::net::wifi::IWifiScannerImpl;
-using android::hardware::wifi::offload::V1_0::IOffload;
 using android::sp;
 using com::android::server::wifi::wificond::NativeScanResult;
 using com::android::server::wifi::wificond::PnoSettings;
 using com::android::server::wifi::wificond::SingleScanSettings;
 
-using std::pair;
 using std::string;
 using std::vector;
 using std::weak_ptr;
