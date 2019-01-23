@@ -18,6 +18,7 @@
 #define WIFICOND_NET_NETLINK_UTILS_H_
 
 #include <array>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -99,7 +100,8 @@ struct WiphyFeatures {
         supports_random_mac_sched_scan(false),
         supports_low_span_oneshot_scan(false),
         supports_low_power_oneshot_scan(false),
-        supports_high_accuracy_oneshot_scan(false) {}
+        supports_high_accuracy_oneshot_scan(false),
+        supports_tx_mgmt_frame_mcs(false) {}
   WiphyFeatures(uint32_t feature_flags,
                 const std::vector<uint8_t>& ext_feature_flags_bytes);
   // This device/driver supports using a random MAC address during scan
@@ -114,6 +116,8 @@ struct WiphyFeatures {
   bool supports_low_power_oneshot_scan;
   // This device/driver supports performing high-accuracy one-shot scans.
   bool supports_high_accuracy_oneshot_scan;
+  // This device/driver supports sending a management frame at a specified MCS.
+  bool supports_tx_mgmt_frame_mcs;
   // This device/driver supports sched_scan for reporting BSSs
   // with better RSSI than the current connected BSS
   bool supports_ext_sched_scan_relative_rssi;
@@ -126,11 +130,13 @@ struct StationInfo {
   StationInfo(uint32_t station_tx_packets_,
               uint32_t station_tx_failed_,
               uint32_t station_tx_bitrate_,
-              int8_t current_rssi_)
+              int8_t current_rssi_,
+              uint32_t station_rx_bitrate_)
       : station_tx_packets(station_tx_packets_),
         station_tx_failed(station_tx_failed_),
         station_tx_bitrate(station_tx_bitrate_),
-        current_rssi(current_rssi_) {}
+        current_rssi(current_rssi_),
+        station_rx_bitrate(station_rx_bitrate_) {}
   // Number of successfully transmitted packets.
   int32_t station_tx_packets;
   // Number of tramsmission failures.
@@ -139,6 +145,8 @@ struct StationInfo {
   uint32_t station_tx_bitrate;
   // Current signal strength.
   int8_t current_rssi;
+  // Last Received unicast packet bit rate in 100kbit/s.
+  uint32_t station_rx_bitrate;
   // There are many other counters/parameters included in station info.
   // We will add them once we find them useful.
 };
@@ -268,6 +276,16 @@ class NetlinkUtils {
 
   // Cancel the sign-up of receiving channel switch events.
   virtual void UnsubscribeChannelSwitchEvent(uint32_t interface_index);
+
+  // Sign up to be notified of frame tx status events.
+  virtual void SubscribeFrameTxStatusEvent(
+      uint32_t interface_index, OnFrameTxStatusEventHandler handler);
+
+  // Cancel the sign-up of receiving frame tx status events.
+  virtual void UnsubscribeFrameTxStatusEvent(uint32_t interface_index);
+
+  virtual bool SendMgmtFrame(uint32_t interface_index,
+    const std::vector<uint8_t>& frame, int32_t mcs, uint64_t* out_cookie);
 
   // Visible for testing.
   bool supports_split_wiphy_dump_;

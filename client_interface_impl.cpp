@@ -19,6 +19,7 @@
 #include <vector>
 
 #include <android-base/logging.h>
+#include <utils/Timers.h>
 
 #include "wificond/client_interface_binder.h"
 #include "wificond/logging_utils.h"
@@ -30,6 +31,7 @@
 #include "wificond/scanning/scanner_impl.h"
 
 using android::net::wifi::IClientInterface;
+using android::net::wifi::ISendMgmtFrameEvent;
 using com::android::server::wifi::wificond::NativeScanResult;
 using android::sp;
 using android::wifi_system::InterfaceTool;
@@ -118,13 +120,28 @@ ClientInterfaceImpl::ClientInterfaceImpl(
       offload_service_utils_(new OffloadServiceUtils()),
       mlme_event_handler_(new MlmeEventHandlerImpl(this)),
       binder_(new ClientInterfaceBinder(this)),
-      is_associated_(false) {
+      is_associated_(false),
+      frame_tx_in_progress_(false),
+      frame_tx_status_cookie_(0),
+      on_frame_tx_status_event_handler_([](bool was_acked) {}) {
   netlink_utils_->SubscribeMlmeEvent(
       interface_index_,
       mlme_event_handler_.get());
+
+  netlink_utils_->SubscribeFrameTxStatusEvent(
+      interface_index,
+      [this](uint64_t cookie, bool was_acked) {
+        if (frame_tx_in_progress_ && frame_tx_status_cookie_ == cookie) {
+          on_frame_tx_status_event_handler_(was_acked);
+          frame_tx_in_progress_ = false;
+          frame_tx_status_cookie_ = 0;
+          on_frame_tx_status_event_handler_ = [](bool was_acked) {};
+        }
+      });
     netlink_utils_->SubscribeChannelSwitchEvent(interface_index_,
 	std::bind(&ClientInterfaceImpl::OnChannelSwitchEvent, this, _1));
-if (!netlink_utils_->GetWiphyInfo(wiphy_index_,
+
+  if (!netlink_utils_->GetWiphyInfo(wiphy_index_,
                                &band_info_,
                                &scan_capabilities_,
                                &wiphy_features_)) {
@@ -143,6 +160,7 @@ if (!netlink_utils_->GetWiphyInfo(wiphy_index_,
 ClientInterfaceImpl::~ClientInterfaceImpl() {
   binder_->NotifyImplDead();
   scanner_->Invalidate();
+  netlink_utils_->UnsubscribeFrameTxStatusEvent(interface_index_);
   netlink_utils_->UnsubscribeMlmeEvent(interface_index_);
   if_tool_->SetUpState(interface_name_.c_str(), false);
 }
@@ -177,6 +195,8 @@ void ClientInterfaceImpl::Dump(std::stringstream* ss) const {
       << wiphy_features_.supports_high_accuracy_oneshot_scan << endl;
   *ss << "Device supports random MAC for scheduled scan: "
       << wiphy_features_.supports_random_mac_sched_scan << endl;
+  *ss << "Device supports sending management frames at specified MCS rate: "
+      << wiphy_features_.supports_tx_mgmt_frame_mcs << endl;
   *ss << "------- Dump End -------" << endl;
 }
 
@@ -213,6 +233,9 @@ bool ClientInterfaceImpl::SignalPoll(vector<int32_t>* out_signal_poll_results) {
   // Association frequency.
   out_signal_poll_results->push_back(
       static_cast<int32_t>(associate_freq_));
+  // Convert from 100kbit/s to Mbps.
+  out_signal_poll_results->push_back(
+      static_cast<int32_t>(station_info.station_rx_bitrate/10));
 
   return true;
 }
@@ -266,6 +289,37 @@ bool ClientInterfaceImpl::OnChannelSwitchEvent(uint32_t frequency) {
 
 bool ClientInterfaceImpl::IsAssociated() const {
   return is_associated_;
+}
+
+void ClientInterfaceImpl::SendMgmtFrame(const vector<uint8_t>& frame,
+    const sp<ISendMgmtFrameEvent>& callback, int32_t mcs) {
+  if (mcs >= 0 && !wiphy_features_.supports_tx_mgmt_frame_mcs) {
+    callback->OnFailure(
+        ISendMgmtFrameEvent::SEND_MGMT_FRAME_ERROR_MCS_UNSUPPORTED);
+    return;
+  }
+
+  uint64_t cookie;
+  if (!netlink_utils_->SendMgmtFrame(interface_index_, frame, mcs, &cookie)) {
+    callback->OnFailure(ISendMgmtFrameEvent::SEND_MGMT_FRAME_ERROR_UNKNOWN);
+    return;
+  }
+
+  frame_tx_in_progress_ = true;
+  frame_tx_status_cookie_ = cookie;
+  nsecs_t start_time_ns = systemTime(SYSTEM_TIME_MONOTONIC);
+  on_frame_tx_status_event_handler_ =
+      [callback, start_time_ns](bool was_acked) {
+        if (was_acked) {
+          nsecs_t end_time_ns = systemTime(SYSTEM_TIME_MONOTONIC);
+          int32_t elapsed_time_ms = static_cast<int32_t>(
+              nanoseconds_to_milliseconds(end_time_ns - start_time_ns));
+          callback->OnAck(elapsed_time_ms);
+        } else {
+          callback->OnFailure(
+              ISendMgmtFrameEvent::SEND_MGMT_FRAME_ERROR_NO_ACK);
+        }
+      };
 }
 
 }  // namespace wificond

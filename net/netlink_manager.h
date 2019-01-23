@@ -118,6 +118,13 @@ typedef std::function<void(
     StationEvent event,
     const std::array<uint8_t, ETH_ALEN>& mac_address)> OnStationEventHandler;
 
+// This describes a type of function handling frame tx status events.
+// |cookie| specifies the cookie of the transmitted frame that this status
+// event corresponds to.
+// |was_acked| reports whether the transmitted frame was ACKed.
+typedef std::function<void(
+    uint64_t cookie, bool was_acked)> OnFrameTxStatusEventHandler;
+
 class NetlinkManager {
  public:
   explicit NetlinkManager(EventLoop* event_loop);
@@ -258,6 +265,13 @@ class NetlinkManager {
   // Cancel the sign-up of receiving channel events.
   virtual void UnsubscribeChannelSwitchEvent(uint32_t interface_index);
 
+  // Sign up to be notified of frame tx status events.
+  virtual void SubscribeFrameTxStatusEvent(
+      uint32_t interface_index, OnFrameTxStatusEventHandler handler);
+
+  // Cancel the sign-up of receiving frame tx status events.
+  virtual void UnsubscribeFrameTxStatusEvent(uint32_t interface_index);
+
  private:
   bool SetupSocket(android::base::unique_fd* netlink_fd);
   bool WatchSocket(android::base::unique_fd* netlink_fd);
@@ -270,6 +284,7 @@ class NetlinkManager {
   void OnScanResultsReady(std::unique_ptr<const NL80211Packet> packet);
   void OnSchedScanResultsReady(std::unique_ptr<const NL80211Packet> packet);
   void OnChannelSwitchEvent(std::unique_ptr<const NL80211Packet> packet);
+  void OnFrameTxStatusEvent(std::unique_ptr<const NL80211Packet> packet);
 
   // This handler revceives mapping from NL80211 family name to family id,
   // as well as mapping from group name to group id.
@@ -305,6 +320,10 @@ class NetlinkManager {
   std::map<uint32_t, OnRegDomainChangedHandler> on_reg_domain_changed_handler_;
   std::map<uint32_t, OnStationEventHandler> on_station_event_handler_;
   std::map<uint32_t, OnChannelSwitchEventHandler> on_channel_switch_event_handler_;
+
+  // mapping from interface_index to frame tx status event handler
+  std::map<uint32_t, OnFrameTxStatusEventHandler>
+      on_frame_tx_status_event_handler_;
 
   // Mapping from family name to family id, and group name to group id.
   std::map<std::string, MessageType> message_types_;

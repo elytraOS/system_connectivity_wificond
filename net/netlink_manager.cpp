@@ -552,6 +552,10 @@ void NetlinkManager::BroadcastHandler(unique_ptr<const NL80211Packet> packet) {
     OnChannelSwitchEvent(std::move(packet));
     return;
   }
+  if (command == NL80211_CMD_FRAME_TX_STATUS) {
+    OnFrameTxStatusEvent(std::move(packet));
+    return;
+  }
 }
 
 void NetlinkManager::OnRegChangeEvent(unique_ptr<const NL80211Packet> packet) {
@@ -732,6 +736,31 @@ void NetlinkManager::OnChannelSwitchEvent(unique_ptr<const NL80211Packet> packet
     }
 }
 
+void NetlinkManager::OnFrameTxStatusEvent(
+    unique_ptr<const NL80211Packet> packet) {
+
+  uint32_t if_index;
+  if (!packet->GetAttributeValue(NL80211_ATTR_IFINDEX, &if_index)) {
+    LOG(WARNING) << "Failed to get NL80211_ATTR_IFINDEX"
+                 << "from NL80211_CMD_FRAME_TX_STATUS event";
+    return;
+  }
+
+  uint64_t cookie;
+  if (!packet->GetAttributeValue(NL80211_ATTR_COOKIE, &cookie)) {
+    LOG(WARNING) << "Failed to get NL80211_ATTR_COOKIE"
+                 << "from NL80211_CMD_FRAME_TX_STATUS event";
+    return;
+  }
+
+  bool was_acked = packet->HasAttribute(NL80211_ATTR_ACK);
+
+  const auto handler = on_frame_tx_status_event_handler_.find(if_index);
+  if (handler != on_frame_tx_status_event_handler_.end()) {
+    handler->second(cookie, was_acked);
+  }
+}
+
 void NetlinkManager::SubscribeStationEvent(
     uint32_t interface_index,
     OnStationEventHandler handler) {
@@ -792,6 +821,15 @@ void NetlinkManager::SubscribeSchedScanResultNotification(
 void NetlinkManager::UnsubscribeSchedScanResultNotification(
     uint32_t interface_index) {
   on_sched_scan_result_ready_handler_.erase(interface_index);
+}
+
+void NetlinkManager::SubscribeFrameTxStatusEvent(
+    uint32_t interface_index, OnFrameTxStatusEventHandler handler) {
+  on_frame_tx_status_event_handler_[interface_index] = handler;
+}
+
+void NetlinkManager::UnsubscribeFrameTxStatusEvent(uint32_t interface_index) {
+  on_frame_tx_status_event_handler_.erase(interface_index);
 }
 
 }  // namespace wificond

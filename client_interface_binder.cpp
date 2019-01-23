@@ -28,6 +28,7 @@
 #include "wificond/client_interface_impl.h"
 
 using android::binder::Status;
+using android::net::wifi::ISendMgmtFrameEvent;
 using android::net::wifi::IWifiScannerImpl;
 using std::vector;
 
@@ -100,6 +101,17 @@ Status ClientInterfaceBinder::setMacAddress(const vector<uint8_t>& mac, bool* su
   std::array<uint8_t, ETH_ALEN> mac_array;
   std::copy_n(mac.begin(), ETH_ALEN, mac_array.begin());
   *success = impl_->SetMacAddress(mac_array);
+  return Status::ok();
+}
+
+Status ClientInterfaceBinder::SendMgmtFrame(const vector<uint8_t>& frame,
+    const sp<ISendMgmtFrameEvent>& callback, int32_t mcs) {
+  if (impl_ == nullptr) {
+    callback->OnFailure(ISendMgmtFrameEvent::SEND_MGMT_FRAME_ERROR_UNKNOWN);
+    return Status::ok();
+  }
+  // TODO (b/112029045) validate mcs
+  impl_->SendMgmtFrame(frame, callback, mcs);
   return Status::ok();
 }
 
