@@ -171,18 +171,14 @@ class NetlinkUtils {
   // |*out_wiphy_index| returns the wiphy index from kernel.
   // Returns true on success.
   virtual bool GetWiphyIndex(uint32_t* out_wiphy_index);
+  virtual bool GetWiphyIndex(uint32_t* out_wiphy_index,
+                             const std::string& iface_name);
 
   // Get a list of wiphy indices for all registered wiphys from kernel.
   // |*wiphy_index_list| returns the list of indices
   // Returns true on success
-  virtual bool GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list);
-
-  // Get a wiphy index that contains an interface with base name.
-  // |base_ifname| is the name of interface to search for
-  // |*out_wiphy_index| returns the wiphy index from kernel.
-  // Returns true on success
-  virtual bool GetWiphyIndexWithInterfaceName(const std::string base_ifname,
-                                              uint32_t* out_wiphy_index);
+  virtual bool GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list,
+                               const std::string& iface_name);
 
   // Add AP interface
   virtual bool QcAddApInterface(uint32_t if_index,

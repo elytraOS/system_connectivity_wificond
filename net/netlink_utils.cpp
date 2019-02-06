@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include <net/if.h>
 #include <linux/netlink.h>
 
 #include <android-base/logging.h>
@@ -108,13 +109,18 @@ NetlinkUtils::NetlinkUtils(NetlinkManager* netlink_manager)
 
 NetlinkUtils::~NetlinkUtils() {}
 
-bool NetlinkUtils::GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list) {
+bool NetlinkUtils::GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list,
+                                   const std::string& iface_name) {
   NL80211Packet get_wiphy(
       netlink_manager_->GetFamilyId(),
       NL80211_CMD_GET_WIPHY,
       netlink_manager_->GetSequenceNumber(),
       getpid());
   get_wiphy.AddFlag(NLM_F_DUMP);
+  if (!iface_name.empty()) {
+    int ifindex = if_nametoindex(iface_name.c_str());
+    get_wiphy.AddAttribute(NL80211Attr<uint32_t>(NL80211_ATTR_IFINDEX, ifindex));
+  }
   vector<unique_ptr<const NL80211Packet>> response;
   if (!netlink_manager_->SendMessageAndGetResponses(get_wiphy, &response))  {
     LOG(ERROR) << "NL80211_CMD_GET_WIPHY dump failed";
@@ -151,10 +157,11 @@ bool NetlinkUtils::GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list) {
   return true;
 }
 
-bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index) {
+bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index,
+                                 const std::string& iface_name) {
   std::vector<uint32_t> wiphy_index_list;
 
-  if (!GetWiphyIndices(&wiphy_index_list)) {
+  if (!GetWiphyIndices(&wiphy_index_list, iface_name)) {
     LOG(ERROR) << "Failed to get wiphy indices";
     return false;
   }
@@ -163,34 +170,8 @@ bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index) {
   return true;
 }
 
-bool NetlinkUtils::GetWiphyIndexWithInterfaceName(
-    const std::string base_ifname,
-    uint32_t* out_wiphy_index) {
-  std::vector<uint32_t> wiphy_index_list;
-
-  if (!GetWiphyIndices(&wiphy_index_list)) {
-    LOG(ERROR) << "Failed to get wiphy indices";
-    return false;
-  }
-
-  for (uint32_t& wiphy_index : wiphy_index_list) {
-    vector<InterfaceInfo> interfaces;
-
-    if (!GetInterfaces(wiphy_index, &interfaces)) {
-      LOG(ERROR) << "Failed to get interfaces for wiphy_index: " << wiphy_index;
-      return false;
-    }
-
-    for (InterfaceInfo& interface : interfaces) {
-      if (interface.name == base_ifname) {
-        *out_wiphy_index = wiphy_index;
-        return true;
-      }
-    }
-  }
-
-  LOG(ERROR) << "Failed to find wiphy index with interface: " << base_ifname;
-  return false;
+bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index) {
+  return GetWiphyIndex(out_wiphy_index, "");
 }
 
 bool NetlinkUtils::QcAddApInterface(uint32_t if_index,
@@ -236,7 +217,6 @@ bool NetlinkUtils::QcRemoveInterface(uint32_t if_index) {
 
   return true;
 }
-
 
 bool NetlinkUtils::GetInterfaces(uint32_t wiphy_index,
                                  vector<InterfaceInfo>* interface_info) {
@@ -604,7 +584,6 @@ bool NetlinkUtils::GetStationInfo(uint32_t interface_index,
                             &tx_bitrate_attr)) {
     if (!tx_bitrate_attr.GetAttributeValue(NL80211_RATE_INFO_BITRATE32,
                                          &tx_bitrate)) {
-      LOG(ERROR) << "Failed to get TX NL80211_RATE_INFO_BITRATE32";
       // Return invalid tx rate to avoid breaking the get station cmd
       tx_bitrate = 0;
     }
@@ -618,12 +597,9 @@ bool NetlinkUtils::GetStationInfo(uint32_t interface_index,
                             &rx_bitrate_attr)) {
     if (!rx_bitrate_attr.GetAttributeValue(NL80211_RATE_INFO_BITRATE32,
                                          &rx_bitrate)) {
-      LOG(ERROR) << "Failed to get RX NL80211_RATE_INFO_BITRATE32";
       // Return invalid rx rate to avoid breaking the get station cmd
       rx_bitrate = 0;
     }
-  } else {
-      LOG(ERROR) << "Failed to get NL80211_STA_INFO_RX_BITRATE";
   }
   *out_station_info = StationInfo(tx_good, tx_bad, tx_bitrate, current_rssi, rx_bitrate);
   return true;

@@ -251,7 +251,7 @@ status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
 void Server::MarkDownAllInterfaces() {
   uint32_t wiphy_index;
   vector<InterfaceInfo> interfaces;
-  if (netlink_utils_->GetWiphyIndexWithInterfaceName(base_ifname_, &wiphy_index) &&
+  if (netlink_utils_->GetWiphyIndex(&wiphy_index, base_ifname_) &&
       netlink_utils_->GetInterfaces(wiphy_index, &interfaces)) {
     for (InterfaceInfo& interface : interfaces) {
       if_tool_->SetUpState(interface.name.c_str(), false);
@@ -318,7 +318,7 @@ Status Server::getAvailableDFSChannels(
 
 bool Server::SetupInterface(const std::string& iface_name,
                             InterfaceInfo* interface) {
-  if (!RefreshWiphyIndex()) {
+  if (!RefreshWiphyIndex(iface_name)) {
     return false;
   }
 
@@ -345,8 +345,8 @@ bool Server::SetupInterface(const std::string& iface_name,
   return false;
 }
 
-bool Server::RefreshWiphyIndex() {
-  if (!netlink_utils_->GetWiphyIndexWithInterfaceName(base_ifname_, &wiphy_index_)) {
+bool Server::RefreshWiphyIndex(const std::string& iface_name) {
+  if (!netlink_utils_->GetWiphyIndex(&wiphy_index_, iface_name)) {
     LOG(ERROR) << "Failed to get wiphy index";
     return false;
   }

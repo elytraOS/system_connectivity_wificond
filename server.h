@@ -102,7 +102,7 @@ class Server : public android::net::wifi::BnWificond {
   // the interface to Ap mode later.
   // Returns true on success, false otherwise.
   bool SetupInterface(const std::string& iface_name, InterfaceInfo* interface);
-  bool RefreshWiphyIndex();
+  bool RefreshWiphyIndex(const std::string& iface_num);
   void LogSupportedBands();
   void OnRegDomainChanged(std::string& country_code);
   void BroadcastClientInterfaceReady(
