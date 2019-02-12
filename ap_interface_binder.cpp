@@ -74,33 +74,18 @@ void ApInterfaceBinder::NotifySoftApChannelSwitched(
 
 binder::Status ApInterfaceBinder::registerCallback(
     const sp<IApInterfaceEventCallback>& callback, bool* out_success) {
-  *out_success = false;
-  if (!impl_) {
-    LOG(WARNING) << "Cannot register callback on dead ApInterface.";
-    return binder::Status::ok();
-  }
   *out_success = true;
   ap_interface_event_callback_ = callback;
   return binder::Status::ok();
 }
 
 binder::Status ApInterfaceBinder::getInterfaceName(std::string* out_name) {
-  if (!impl_) {
-    LOG(WARNING) << "Cannot get interface name from dead ApInterface";
-    return binder::Status::ok();
-  }
   *out_name = impl_->GetInterfaceName();
   return binder::Status::ok();
 }
 
 binder::Status ApInterfaceBinder::getNumberOfAssociatedStations(
     int* out_num_of_stations) {
-  if (!impl_) {
-    LOG(WARNING) << "Cannot get number of associated stations "
-                 << "from dead ApInterface";
-    *out_num_of_stations = -1;
-    return binder::Status::ok();
-  }
   *out_num_of_stations = impl_->GetNumberOfAssociatedStations();
   return binder::Status::ok();
 }
