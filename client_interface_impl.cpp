@@ -155,6 +155,9 @@ ClientInterfaceImpl::ClientInterfaceImpl(
                              this,
                              scan_utils_,
                              offload_service_utils_);
+  // Need to set the interface up (especially in scan mode since wpa_supplicant
+  // is not started)
+  if_tool_->SetUpState(interface_name_.c_str(), true);
 }
 
 ClientInterfaceImpl::~ClientInterfaceImpl() {

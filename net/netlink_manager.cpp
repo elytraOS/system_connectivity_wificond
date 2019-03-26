@@ -307,7 +307,7 @@ bool NetlinkManager::SendMessageAndGetResponses(
       message_handlers_.erase(sequence);
       return false;
     } else if (poll_return == -1) {
-      LOG(ERROR) << "Failed to poll netlink fd: " << strerror(errno);
+      PLOG(ERROR) << "Failed to poll netlink fd";
       message_handlers_.erase(sequence);
       return false;
     }
@@ -391,7 +391,7 @@ bool NetlinkManager::SendMessageInternal(const NL80211Packet& packet, int fd) {
   ssize_t bytes_sent =
       TEMP_FAILURE_RETRY(send(fd, data.data(), data.size(), 0));
   if (bytes_sent == -1) {
-    LOG(ERROR) << "Failed to send netlink message: " << strerror(errno);
+    PLOG(ERROR) << "Failed to send netlink message";
     return false;
   }
   return true;
@@ -406,7 +406,7 @@ bool NetlinkManager::SetupSocket(unique_fd* netlink_fd) {
   netlink_fd->reset(
       socket(PF_NETLINK, SOCK_DGRAM | SOCK_CLOEXEC, NETLINK_GENERIC));
   if (netlink_fd->get() < 0) {
-    LOG(ERROR) << "Failed to create netlink socket: " << strerror(errno);
+    PLOG(ERROR) << "Failed to create netlink socket";
     return false;
   }
   // Set maximum receive buffer size.
@@ -416,13 +416,13 @@ bool NetlinkManager::SetupSocket(unique_fd* netlink_fd) {
                  SO_RCVBUFFORCE,
                  &kReceiveBufferSize,
                  sizeof(kReceiveBufferSize)) < 0) {
-    LOG(ERROR) << "Failed to set uevent socket SO_RCVBUFFORCE option: " << strerror(errno);
+    PLOG(ERROR) << "Failed to set uevent socket SO_RCVBUFFORCE option";
     return false;
   }
   if (bind(netlink_fd->get(),
            reinterpret_cast<struct sockaddr*>(&nladdr),
            sizeof(nladdr)) < 0) {
-    LOG(ERROR) << "Failed to bind netlink socket: " << strerror(errno);
+    PLOG(ERROR) << "Failed to bind netlink socket";
     return false;
   }
   return true;
@@ -478,7 +478,7 @@ bool NetlinkManager::SubscribeToEvents(const string& group) {
                        &group_id,
                        sizeof(group_id));
   if (err < 0) {
-    LOG(ERROR) << "Failed to setsockopt: " << strerror(errno);
+    PLOG(ERROR) << "Failed to setsockopt";
     return false;
   }
   return true;
