@@ -81,14 +81,28 @@ bool CaptureSchedScanIntervalSetting(
     const SchedScanIntervalSetting&  interval_setting,
     int32_t /* rssi_threshold_2g */,
     int32_t /* rssi_threshold_5g */,
-    bool /* request_random_mac */,
-    bool /* request_low_power_scan */,
+    const SchedScanReqFlags&  /* req_flags */,
     const  std::vector<std::vector<uint8_t>>& /* scan_ssids */,
     const std::vector<std::vector<uint8_t>>& /* match_ssids */,
     const  std::vector<uint32_t>& /* freqs */,
     int* /* error_code */,
     SchedScanIntervalSetting* out_interval_setting) {
   *out_interval_setting = interval_setting;
+  return true;
+}
+
+bool CaptureSchedScanReqFlags(
+    uint32_t /* interface_index */,
+    const SchedScanIntervalSetting&  /* interval_setting */,
+    int32_t /* rssi_threshold_2g */,
+    int32_t /* rssi_threshold_5g */,
+    const SchedScanReqFlags&  req_flags,
+    const  std::vector<std::vector<uint8_t>>& /* scan_ssids */,
+    const std::vector<std::vector<uint8_t>>& /* match_ssids */,
+    const  std::vector<uint32_t>& /* freqs */,
+    int* /* error_code */,
+    SchedScanReqFlags* out_req_flags) {
+  *out_req_flags = req_flags;
   return true;
 }
 
@@ -321,7 +335,7 @@ TEST_F(ScannerTest, TestStartPnoScanViaNetlink) {
                            &scan_utils_, offload_service_utils_);
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, _, _)).
+      StartScheduledScan(_, _, _, _, _,  _, _, _, _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(PnoSettings(), &success).isOk());
   EXPECT_TRUE(success);
@@ -336,10 +350,18 @@ TEST_F(ScannerTest, TestStartPnoScanViaNetlinkWithLowPowerScanWiphySupport) {
   ScannerImpl scanner_impl(kFakeInterfaceIndex, scan_capabilities_,
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_, offload_service_utils_);
+  SchedScanReqFlags req_flags = {};
+  ON_CALL(
+      scan_utils_,
+      StartScheduledScan(_, _, _, _, _, _, _, _, _)).
+          WillByDefault(Return(true));
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, true, _, _, _, _)).
-          WillOnce(Return(true));
+      StartScheduledScan(_, _, _, _, _, _, _, _, _)).
+          WillOnce(Invoke(bind(
+              CaptureSchedScanReqFlags,
+              _1, _2, _3, _4, _5, _6, _7, _8, _9, &req_flags)));
+  EXPECT_TRUE(req_flags.request_low_power);
   EXPECT_TRUE(scanner_impl.startPnoScan(PnoSettings(), &success).isOk());
   EXPECT_TRUE(success);
 }
@@ -392,7 +414,7 @@ TEST_F(ScannerTest, TestStartScanOverNetlinkFallback) {
   EXPECT_CALL(*offload_scan_manager_, startScan(_, _, _, _, _, _, _))
       .WillOnce(Return(false));
   EXPECT_CALL(*offload_scan_manager_, stopScan(_)).Times(0);
-  EXPECT_CALL(scan_utils_, StartScheduledScan(_, _, _, _, _, _, _, _, _, _))
+  EXPECT_CALL(scan_utils_, StartScheduledScan(_, _, _, _, _, _, _, _, _))
       .WillOnce(Return(true));
   EXPECT_CALL(scan_utils_, StopScheduledScan(_)).WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl_->startPnoScan(PnoSettings(), &success).isOk());
@@ -416,7 +438,7 @@ TEST_F(ScannerTest, TestAsyncErrorOverOffload) {
                                       scan_capabilities_, wiphy_features_,
                                       &client_interface_impl_,
                                       &scan_utils_, offload_service_utils_));
-  EXPECT_CALL(scan_utils_, StartScheduledScan(_, _, _, _, _, _, _, _, _, _))
+  EXPECT_CALL(scan_utils_, StartScheduledScan(_, _, _, _, _, _, _, _, _))
       .WillOnce(Return(true));
   EXPECT_CALL(scan_utils_, StopScheduledScan(_)).WillOnce(Return(true));
   scanner_impl_->startPnoScan(PnoSettings(), &success);
@@ -476,7 +498,7 @@ TEST_F(ScannerTest, TestGetScanResultsWhenOffloadFails) {
                                       scan_capabilities_, wiphy_features_,
                                       &client_interface_impl_,
                                       &scan_utils_, offload_service_utils_));
-  EXPECT_CALL(scan_utils_, StartScheduledScan(_, _, _, _, _, _, _, _, _, _))
+  EXPECT_CALL(scan_utils_, StartScheduledScan(_, _, _, _, _, _, _, _, _))
       .WillOnce(Return(true));
   EXPECT_CALL(scan_utils_, StopScheduledScan(_)).WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl_->startPnoScan(PnoSettings(), &success).isOk());
@@ -511,10 +533,10 @@ TEST_F(ScannerTest, TestGenerateScanPlansIfDeviceSupports) {
   SchedScanIntervalSetting interval_setting;
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, _, _, _, _, _)).
+      StartScheduledScan(_, _, _, _, _, _, _, _, _)).
               WillOnce(Invoke(bind(
                   CaptureSchedScanIntervalSetting,
-                  _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, &interval_setting)));
+                  _1, _2, _3, _4, _5, _6, _7, _8, _9, &interval_setting)));
 
   bool success_ignored = 0;
   EXPECT_TRUE(scanner.startPnoScan(pno_settings, &success_ignored).isOk());
@@ -544,10 +566,10 @@ TEST_F(ScannerTest, TestGenerateSingleIntervalIfDeviceDoesNotSupportScanPlan) {
   SchedScanIntervalSetting interval_setting;
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, _, _, _, _, _)).
+      StartScheduledScan(_, _, _, _, _, _, _, _, _)).
               WillOnce(Invoke(bind(
                   CaptureSchedScanIntervalSetting,
-                  _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, &interval_setting)));
+                  _1, _2, _3, _4, _5, _6, _7, _8, _9, &interval_setting)));
 
   bool success_ignored = 0;
   EXPECT_TRUE(scanner.startPnoScan(pno_settings, &success_ignored).isOk());
@@ -596,7 +618,7 @@ TEST_F(ScannerTest, TestStartPnoScanWithNonEmptyFrequencyList) {
   expected_freqs.push_back(2412);
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_freqs), _)).
+      StartScheduledScan(_, _, _, _, _, _, _, Eq(expected_freqs), _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -638,7 +660,7 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListNoDuplicates) {
   expected_freqs.push_back(2462);
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_freqs), _)).
+      StartScheduledScan(_, _, _, _, _, _, _, Eq(expected_freqs), _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -677,7 +699,7 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListFallbackMechanism) {
   vector<uint32_t> expected_frequencies(default_frequencies.begin(), default_frequencies.end());
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(expected_frequencies), _)).
+      StartScheduledScan(_, _, _, _, _, _, _, Eq(expected_frequencies), _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -710,7 +732,7 @@ TEST_F(ScannerTest, TestStartPnoScanEmptyList) {
   pno_settings.pno_networks_.push_back(network2);
   EXPECT_CALL(
       scan_utils_,
-      StartScheduledScan(_, _, _, _, _, false, _, _, Eq(vector<uint32_t>{}), _)).
+      StartScheduledScan(_, _, _, _, _, _, _, Eq(vector<uint32_t>{}), _)).
           WillOnce(Return(true));
   EXPECT_TRUE(scanner_impl.startPnoScan(pno_settings, &success).isOk());
   EXPECT_TRUE(success);

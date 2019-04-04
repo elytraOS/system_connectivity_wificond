@@ -90,6 +90,9 @@ WiphyFeatures::WiphyFeatures(uint32_t feature_flags,
                           NL80211_EXT_FEATURE_HIGH_ACCURACY_SCAN);
   // TODO (b/112029045) check if sending frame at specified MCS is supported
   supports_tx_mgmt_frame_mcs = false;
+  supports_ext_sched_scan_relative_rssi =
+      IsExtFeatureFlagSet(ext_feature_flags_bytes,
+                          NL80211_EXT_FEATURE_SCHED_SCAN_RELATIVE_RSSI);
 }
 
 NetlinkUtils::NetlinkUtils(NetlinkManager* netlink_manager)

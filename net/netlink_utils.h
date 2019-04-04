@@ -118,6 +118,9 @@ struct WiphyFeatures {
   bool supports_high_accuracy_oneshot_scan;
   // This device/driver supports sending a management frame at a specified MCS.
   bool supports_tx_mgmt_frame_mcs;
+  // This device/driver supports sched_scan for reporting BSSs
+  // with better RSSI than the current connected BSS
+  bool supports_ext_sched_scan_relative_rssi;
   // There are other flags included in NL80211_ATTR_FEATURE_FLAGS.
   // We will add them once we find them useful.
 };
