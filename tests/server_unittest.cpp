@@ -80,6 +80,7 @@ class ServerTest : public ::testing::Test {
   void SetUp() override {
     ON_CALL(*if_tool_, SetUpState(_, _)).WillByDefault(Return(true));
     ON_CALL(*netlink_utils_, GetWiphyIndex(_)).WillByDefault(Return(true));
+    ON_CALL(*netlink_utils_, GetWiphyIndex(_, _)).WillByDefault(Return(true));
     ON_CALL(*netlink_utils_, GetInterfaces(_, _))
       .WillByDefault(Invoke(bind(
           MockGetInterfacesResponse, mock_interfaces, true, _1, _2)));
@@ -155,9 +156,6 @@ TEST_F(ServerTest, CanDestroyInterfaces) {
 TEST_F(ServerTest, CanTeardownApInterface) {
   sp<IApInterface> ap_if;
 
-  // When we tear down the interface, we expect the iface to be unloaded.
-  EXPECT_CALL(*if_tool_, SetUpState(StrEq(kFakeInterfaceName), Eq(false)));
-
   EXPECT_TRUE(server_.createApInterface(kFakeInterfaceName, &ap_if).isOk());
   EXPECT_NE(nullptr, ap_if.get());
 
@@ -173,9 +171,6 @@ TEST_F(ServerTest, CanTeardownApInterface) {
 
 TEST_F(ServerTest, CanTeardownClientInterface) {
   sp<IClientInterface> client_if;
-
-  // When we tear down the interface, we expect the iface to be unloaded.
-  EXPECT_CALL(*if_tool_, SetUpState(StrEq(kFakeInterfaceName), Eq(false)));
 
   EXPECT_TRUE(server_.createClientInterface(
       kFakeInterfaceName, &client_if).isOk());
@@ -201,10 +196,6 @@ TEST_F(ServerTest, CanCreateTeardownApAndClientInterface) {
 
   EXPECT_TRUE(server_.createApInterface(kFakeInterfaceName1, &ap_if).isOk());
   EXPECT_NE(nullptr, ap_if.get());
-
-  // When we tear down the interfaces, we expect the iface to be unloaded.
-  EXPECT_CALL(*if_tool_, SetUpState(StrEq(kFakeInterfaceName), Eq(false)));
-  EXPECT_CALL(*if_tool_, SetUpState(StrEq(kFakeInterfaceName1), Eq(false)));
 
   bool success = true;
   // Try to remove an invalid iface name, this should fail.

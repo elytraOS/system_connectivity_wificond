@@ -96,7 +96,7 @@ bool CaptureSchedScanReqFlags(
     const SchedScanIntervalSetting&  /* interval_setting */,
     int32_t /* rssi_threshold_2g */,
     int32_t /* rssi_threshold_5g */,
-    const SchedScanReqFlags&  req_flags,
+    const SchedScanReqFlags& req_flags,
     const  std::vector<std::vector<uint8_t>>& /* scan_ssids */,
     const std::vector<std::vector<uint8_t>>& /* match_ssids */,
     const  std::vector<uint32_t>& /* freqs */,
@@ -351,19 +351,15 @@ TEST_F(ScannerTest, TestStartPnoScanViaNetlinkWithLowPowerScanWiphySupport) {
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_, offload_service_utils_);
   SchedScanReqFlags req_flags = {};
-  ON_CALL(
-      scan_utils_,
-      StartScheduledScan(_, _, _, _, _, _, _, _, _)).
-          WillByDefault(Return(true));
   EXPECT_CALL(
       scan_utils_,
       StartScheduledScan(_, _, _, _, _, _, _, _, _)).
           WillOnce(Invoke(bind(
               CaptureSchedScanReqFlags,
               _1, _2, _3, _4, _5, _6, _7, _8, _9, &req_flags)));
-  EXPECT_TRUE(req_flags.request_low_power);
   EXPECT_TRUE(scanner_impl.startPnoScan(PnoSettings(), &success).isOk());
   EXPECT_TRUE(success);
+  EXPECT_TRUE(req_flags.request_low_power);
 }
 
 TEST_F(ScannerTest, TestStopPnoScanViaNetlink) {
