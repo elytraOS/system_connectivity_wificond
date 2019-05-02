@@ -30,7 +30,6 @@
 #include "android/net/wifi/ISendMgmtFrameEvent.h"
 #include "wificond/net/mlme_event_handler.h"
 #include "wificond/net/netlink_utils.h"
-#include "wificond/scanning/offload/offload_service_utils.h"
 #include "wificond/scanning/scanner_impl.h"
 
 namespace android {
@@ -98,7 +97,6 @@ class ClientInterfaceImpl {
   android::wifi_system::InterfaceTool* const if_tool_;
   NetlinkUtils* const netlink_utils_;
   ScanUtils* const scan_utils_;
-  const std::shared_ptr<OffloadServiceUtils> offload_service_utils_;
   const std::unique_ptr<MlmeEventHandlerImpl> mlme_event_handler_;
   const android::sp<ClientInterfaceBinder> binder_;
   android::sp<ScannerImpl> scanner_;

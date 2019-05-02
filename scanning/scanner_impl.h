@@ -24,17 +24,13 @@
 
 #include "android/net/wifi/BnWifiScannerImpl.h"
 #include "wificond/net/netlink_utils.h"
-#include "wificond/scanning/offload_scan_callback_interface.h"
 #include "wificond/scanning/scan_utils.h"
 
 namespace android {
 namespace wificond {
 
 class ClientInterfaceImpl;
-class OffloadServiceUtils;
 class ScanUtils;
-class OffloadScanCallbackInterfaceImpl;
-class OffloadScanManager;
 
 class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
  public:
@@ -42,8 +38,7 @@ class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
               const ScanCapabilities& scan_capabilities,
               const WiphyFeatures& wiphy_features,
               ClientInterfaceImpl* client_interface,
-              ScanUtils* scan_utils,
-              std::weak_ptr<OffloadServiceUtils> offload_service_utils);
+              ScanUtils* scan_utils);
   ~ScannerImpl();
   // Get the latest single scan results from kernel.
   ::android::binder::Status getScanResults(
@@ -71,9 +66,6 @@ class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
       const ::android::sp<::android::net::wifi::IPnoScanEvent>& handler)
       override;
   ::android::binder::Status unsubscribePnoScanEvents() override;
-  void OnOffloadScanResult();
-  void OnOffloadError(
-      OffloadScanCallbackInterface::AsyncErrorReason error_code);
   void Invalidate();
 
  private:
@@ -86,10 +78,7 @@ class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
                    std::string prefix);
   bool StartPnoScanDefault(
       const ::com::android::server::wifi::wificond::PnoSettings& pno_settings);
-  bool StartPnoScanOffload(
-      const ::com::android::server::wifi::wificond::PnoSettings& pno_settings);
   bool StopPnoScanDefault();
-  bool StopPnoScanOffload();
   void ParsePnoSettings(
       const ::com::android::server::wifi::wificond::PnoSettings& pno_settings,
       std::vector<std::vector<uint8_t>>* scan_ssids,
@@ -102,9 +91,6 @@ class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
   bool valid_;
   bool scan_started_;
   bool pno_scan_started_;
-  bool offload_scan_supported_;
-  bool pno_scan_running_over_offload_;
-  bool pno_scan_results_from_offload_;
   ::com::android::server::wifi::wificond::PnoSettings pno_settings_;
 
   const uint32_t interface_index_;
@@ -117,7 +103,6 @@ class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
   ScanUtils* const scan_utils_;
   ::android::sp<::android::net::wifi::IPnoScanEvent> pno_scan_event_handler_;
   ::android::sp<::android::net::wifi::IScanEvent> scan_event_handler_;
-  std::shared_ptr<OffloadScanManager> offload_scan_manager_;
 
   DISALLOW_COPY_AND_ASSIGN(ScannerImpl);
 };
