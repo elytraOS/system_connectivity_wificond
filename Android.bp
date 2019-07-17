@@ -158,7 +158,6 @@ cc_library_static {
     name: "libwificond_test_utils",
     defaults: ["wificond_defaults"],
     srcs: [
-        "tests/integration/binder_dispatcher.cpp",
         "tests/integration/process_utils.cpp",
         "tests/shell_utils.cpp",
     ],
