@@ -26,12 +26,9 @@
 #include <binder/IServiceManager.h>
 #include <binder/ProcessState.h>
 #include <cutils/properties.h>
-#include <hidl/HidlTransportSupport.h>
 #include <libminijail.h>
 #include <utils/String16.h>
 #include <wifi_system/interface_tool.h>
-#include <hwbinder/ProcessState.h>
-#include <cutils/properties.h>
 
 #include "wificond/ipc_constants.h"
 #include "wificond/looper_backed_event_loop.h"
@@ -90,14 +87,6 @@ int SetupBinderOrCrash() {
   return binder_fd;
 }
 
-// Setup our interface to the hw Binder driver or die trying.
-int SetupHwBinderOrCrash() {
-  android::hardware::configureRpcThreadpool(1, true /* callerWillJoin */);
-  int binder_fd  = android::hardware::setupTransportPolling();
-  CHECK_GE(binder_fd, 0) << "Invalid hw binder FD: " << binder_fd;
-  return binder_fd;
-}
-
 void RegisterServiceOrCrash(const android::sp<android::IBinder>& service) {
   android::sp<android::IServiceManager> sm = android::defaultServiceManager();
   CHECK_EQ(sm != NULL, true) << "Could not obtain IServiceManager";
@@ -112,26 +101,8 @@ void OnBinderReadReady(int fd) {
   android::IPCThreadState::self()->handlePolledCommands();
 }
 
-void OnHwBinderReadReady(int fd) {
-  android::hardware::handleTransportPoll(fd);
-}
-
-#ifdef ARCH_ARM_32
-#define DEFAULT_WIFICOND_HW_BINDER_SIZE_KB 4
-size_t getHWBinderMmapSize() {
-  size_t value = 0;
-  value = property_get_int32("persist.vendor.wifi.wificond.hw.binder.size", DEFAULT_WIFICOND_HW_BINDER_SIZE_KB);
-  if (!value) value = DEFAULT_WIFICOND_HW_BINDER_SIZE_KB; // deafult to 1 page of 4 Kb
-
-  return 1024 * value;
-}
-#endif /* ARCH_ARM_32 */
-
 
 int main(int argc, char** argv) {
-#ifdef ARCH_ARM_32
-   android::hardware::ProcessState::initWithMmapSize(getHWBinderMmapSize());
-#endif /* ARCH_ARM_32 */
   android::base::InitLogging(argv, android::base::LogdLogger(android::base::SYSTEM));
   LOG(INFO) << "wificond is starting up...";
 
@@ -144,11 +115,6 @@ int main(int argc, char** argv) {
       binder_fd,
       android::wificond::EventLoop::kModeInput,
       &OnBinderReadReady)) << "Failed to watch binder FD";
-
-  int hw_binder_fd = SetupHwBinderOrCrash();
-  CHECK(event_dispatcher->WatchFileDescriptor(
-      hw_binder_fd, android::wificond::EventLoop::kModeInput,
-      &OnHwBinderReadReady)) << "Failed to watch Hw Binder FD";
 
   android::wificond::NetlinkManager netlink_manager(event_dispatcher.get());
   if (!netlink_manager.Start()) {

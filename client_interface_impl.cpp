@@ -25,7 +25,6 @@
 #include "wificond/logging_utils.h"
 #include "wificond/net/mlme_event.h"
 #include "wificond/net/netlink_utils.h"
-#include "wificond/scanning/offload/offload_service_utils.h"
 #include "wificond/scanning/scan_result.h"
 #include "wificond/scanning/scan_utils.h"
 #include "wificond/scanning/scanner_impl.h"
@@ -117,7 +116,6 @@ ClientInterfaceImpl::ClientInterfaceImpl(
       if_tool_(if_tool),
       netlink_utils_(netlink_utils),
       scan_utils_(scan_utils),
-      offload_service_utils_(new OffloadServiceUtils()),
       mlme_event_handler_(new MlmeEventHandlerImpl(this)),
       binder_(new ClientInterfaceBinder(this)),
       is_associated_(false),
@@ -153,8 +151,7 @@ ClientInterfaceImpl::ClientInterfaceImpl(
                              scan_capabilities_,
                              wiphy_features_,
                              this,
-                             scan_utils_,
-                             offload_service_utils_);
+                             scan_utils_);
   // Need to set the interface up (especially in scan mode since wpa_supplicant
   // is not started)
   if_tool_->SetUpState(interface_name_.c_str(), true);
