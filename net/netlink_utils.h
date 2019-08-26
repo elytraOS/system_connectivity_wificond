@@ -64,6 +64,20 @@ struct BandInfo {
   std::vector<uint32_t> band_dfs;
 };
 
+struct WifiGenerationCapabilities {
+  bool ht_support;
+  bool vht_support;
+  bool sta_he_support;
+  bool sap_he_support;
+};
+
+struct WifiGenerationInfo {
+  // Wi-Fi generation capability for 2.4 GHz band.
+  WifiGenerationCapabilities capa_2g;
+  // Wi-Fi generation capability for 5 GHz band.
+  WifiGenerationCapabilities capa_5g;
+};
+
 struct ScanCapabilities {
   ScanCapabilities() = default;
   ScanCapabilities(uint8_t max_num_scan_ssids_,
@@ -154,6 +168,7 @@ struct StationInfo {
 class MlmeEventHandler;
 class NetlinkManager;
 class NL80211Packet;
+class NL80211NestedAttr;
 
 // Provides NL80211 helper functions.
 class NetlinkUtils {
@@ -283,6 +298,11 @@ class NetlinkUtils {
   virtual bool SendMgmtFrame(uint32_t interface_index,
     const std::vector<uint8_t>& frame, int32_t mcs, uint64_t* out_cookie);
 
+  // Get Wi-Fi Generation capability information per band from kernel.
+  // Returns true on success.
+  virtual bool GetWifiGenerationInfo(uint32_t wiphy_index,
+                            WifiGenerationInfo* out_info);
+
   // Visible for testing.
   bool supports_split_wiphy_dump_;
 
@@ -296,6 +316,12 @@ class NetlinkUtils {
                      BandInfo* out_band_info);
   bool ParseScanCapabilities(const NL80211Packet* const packet,
                              ScanCapabilities* out_scan_capabilities);
+  bool ParseWifiGenerationInfoFromPacket(
+      const NL80211Packet& packet,
+      WifiGenerationInfo* out_info);
+  bool GetWifiGenerationCapabilitiesPerBand(
+          const NL80211NestedAttr& band,
+          WifiGenerationCapabilities* capa);
 
   bool MergePacketsForSplitWiphyDump(
       const std::vector<std::unique_ptr<const NL80211Packet>>& split_dump_info,
