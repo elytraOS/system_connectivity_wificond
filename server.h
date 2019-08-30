@@ -95,6 +95,9 @@ class Server : public android::net::wifi::BnWificond {
       bool add_iface,
       bool* out_success) override;
 
+  android::binder::Status QcGetWifiGenerationCapabilities(
+      int* out_mask) override;
+
  private:
   // Request interface information from kernel and setup local interface object.
   // This assumes that interface should be in STATION mode. Even if we setup
