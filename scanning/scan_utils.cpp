@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include "android/net/wifi/IWifiScannerImpl.h"
+#include "com/android/server/wifi/wificond/IWifiScannerImpl.h"
+#include "com/android/server/wifi/wificond/NativeScanResult.h"
 #include "wificond/scanning/scan_utils.h"
 
 #include <array>
@@ -28,9 +29,8 @@
 #include "wificond/net/kernel-header-latest/nl80211.h"
 #include "wificond/net/netlink_manager.h"
 #include "wificond/net/nl80211_packet.h"
-#include "wificond/scanning/scan_result.h"
 
-using android::net::wifi::IWifiScannerImpl;
+using com::android::server::wifi::wificond::IWifiScannerImpl;
 using com::android::server::wifi::wificond::NativeScanResult;
 using com::android::server::wifi::wificond::RadioChainInfo;
 using std::array;
@@ -183,10 +183,15 @@ bool ScanUtils::ParseScanResult(unique_ptr<const NL80211Packet> packet,
     std::vector<RadioChainInfo> radio_chain_infos;
     ParseRadioChainInfos(bss, &radio_chain_infos);
 
-    *scan_result =
-        NativeScanResult(ssid, bssid, ie, freq, signal,
-                         last_seen_since_boot_microseconds,
-                         capability, associated, radio_chain_infos);
+    scan_result->ssid = ssid;
+    scan_result->bssid = std::vector<uint8_t>(bssid.begin(), bssid.end());
+    scan_result->infoElement = ie;
+    scan_result->frequency = freq;
+    scan_result->signalMbm = signal;
+    scan_result->tsf = last_seen_since_boot_microseconds;
+    scan_result->capability = capability;
+    scan_result->associated = associated;
+    scan_result->radioChainInfos = radio_chain_infos;
   }
   return true;
 }
@@ -237,7 +242,7 @@ bool ScanUtils::ParseRadioChainInfos(
   }
   for (const auto& attr : radio_chain_infos_attrs) {
     RadioChainInfo radio_chain_info;
-    radio_chain_info.chain_id = attr.GetAttributeId();
+    radio_chain_info.chainId = attr.GetAttributeId();
     radio_chain_info.level = attr.GetValue();
     radio_chain_infos->push_back(radio_chain_info);
   }

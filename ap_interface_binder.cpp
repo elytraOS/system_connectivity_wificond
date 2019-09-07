@@ -20,7 +20,7 @@
 
 #include "wificond/ap_interface_impl.h"
 
-using android::net::wifi::IApInterfaceEventCallback;
+using com::android::server::wifi::wificond::IApInterfaceEventCallback;
 
 namespace android {
 namespace wificond {

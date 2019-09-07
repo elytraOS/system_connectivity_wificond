@@ -25,12 +25,12 @@
 #include "wificond/logging_utils.h"
 #include "wificond/net/mlme_event.h"
 #include "wificond/net/netlink_utils.h"
-#include "wificond/scanning/scan_result.h"
+#include "com/android/server/wifi/wificond/NativeScanResult.h"
 #include "wificond/scanning/scan_utils.h"
 #include "wificond/scanning/scanner_impl.h"
 
-using android::net::wifi::IClientInterface;
-using android::net::wifi::ISendMgmtFrameEvent;
+using com::android::server::wifi::wificond::IClientInterface;
+using com::android::server::wifi::wificond::ISendMgmtFrameEvent;
 using com::android::server::wifi::wificond::NativeScanResult;
 using android::sp;
 using android::wifi_system::InterfaceTool;
@@ -157,7 +157,7 @@ ClientInterfaceImpl::~ClientInterfaceImpl() {
   if_tool_->SetUpState(interface_name_.c_str(), false);
 }
 
-sp<android::net::wifi::IClientInterface> ClientInterfaceImpl::GetBinder() const {
+sp<com::android::server::wifi::wificond::IClientInterface> ClientInterfaceImpl::GetBinder() const {
   return binder_;
 }
 

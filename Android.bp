@@ -55,13 +55,6 @@ cc_library_static {
         "client_interface_binder.cpp",
         "client_interface_impl.cpp",
         "logging_utils.cpp",
-        "scanning/channel_settings.cpp",
-        "scanning/hidden_network.cpp",
-        "scanning/pno_network.cpp",
-        "scanning/pno_settings.cpp",
-        "scanning/radio_chain_info.cpp",
-        "scanning/scan_result.cpp",
-        "scanning/single_scan_settings.cpp",
         "scanning/scan_utils.cpp",
         "scanning/scanner_impl.cpp",
         "server.cpp",
@@ -93,7 +86,6 @@ cc_library_static {
         "net/nl80211_packet.cpp",
     ],
     shared_libs: ["libbase"],
-
 }
 
 //
@@ -114,41 +106,25 @@ cc_library_static {
 //
 // wificond IPC interface library
 //
+aidl_interface {
+    name: "libwificond_aidl",
+    local_include_dir: "aidl",
+    srcs: ["aidl/**/*.aidl"],
+    api_dir: "api",
+    backend: {
+        ndk: {
+            enabled: false
+        }
+    }
+}
+
 cc_library_static {
     name: "libwificond_ipc",
     defaults: ["wificond_defaults"],
-    aidl: {
-        local_include_dirs: ["aidl"],
-        export_aidl_headers: true,
-    },
-    srcs: [
-        "ipc_constants.cpp",
-        ":libwificond_ipc_aidl",
-        "scanning/channel_settings.cpp",
-        "scanning/hidden_network.cpp",
-        "scanning/pno_network.cpp",
-        "scanning/pno_settings.cpp",
-        "scanning/radio_chain_info.cpp",
-        "scanning/scan_result.cpp",
-        "scanning/single_scan_settings.cpp",
-    ],
+    srcs: ["ipc_constants.cpp"],
     shared_libs: ["libbinder"],
-}
-
-filegroup {
-    name: "libwificond_ipc_aidl",
-    srcs: [
-        "aidl/android/net/wifi/IApInterface.aidl",
-        "aidl/android/net/wifi/IApInterfaceEventCallback.aidl",
-        "aidl/android/net/wifi/IClientInterface.aidl",
-        "aidl/android/net/wifi/IInterfaceEventCallback.aidl",
-        "aidl/android/net/wifi/IPnoScanEvent.aidl",
-        "aidl/android/net/wifi/IScanEvent.aidl",
-        "aidl/android/net/wifi/ISendMgmtFrameEvent.aidl",
-        "aidl/android/net/wifi/IWificond.aidl",
-        "aidl/android/net/wifi/IWifiScannerImpl.aidl",
-    ],
-    path: "aidl",
+    // static_libs doesn't compile, needs to be whole_static_libs
+    whole_static_libs: ["libwificond_aidl-cpp"],
 }
 
 //
@@ -190,8 +166,6 @@ cc_test {
         "tests/nl80211_attribute_unittest.cpp",
         "tests/nl80211_packet_unittest.cpp",
         "tests/scanner_unittest.cpp",
-        "tests/scan_result_unittest.cpp",
-        "tests/scan_settings_unittest.cpp",
         "tests/scan_utils_unittest.cpp",
         "tests/server_unittest.cpp",
     ],

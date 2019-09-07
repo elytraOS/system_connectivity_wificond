@@ -21,16 +21,16 @@
 #include <gtest/gtest.h>
 #include <wifi_system_test/mock_interface_tool.h>
 
-#include "android/net/wifi/IApInterface.h"
+#include "com/android/server/wifi/wificond/IApInterface.h"
 #include "wificond/tests/mock_netlink_manager.h"
 #include "wificond/tests/mock_netlink_utils.h"
 #include "wificond/tests/mock_scan_utils.h"
 #include "wificond/server.h"
 
-using android::net::wifi::IApInterface;
-using android::net::wifi::IClientInterface;
 using android::wifi_system::InterfaceTool;
 using android::wifi_system::MockInterfaceTool;
+using com::android::server::wifi::wificond::IApInterface;
+using com::android::server::wifi::wificond::IClientInterface;
 using std::unique_ptr;
 using std::vector;
 using testing::Eq;
