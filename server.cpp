@@ -207,6 +207,45 @@ Status Server::QcAddOrRemoveApInterface(const std::string& iface_name,
   return binder::Status::ok();
 }
 
+Status Server::QcGetWifiGenerationCapabilities(int* out_mask) {
+  uint32_t wiphy_index;
+  WifiGenerationInfo info;
+
+  *out_mask = 0;
+  if (netlink_utils_->GetWiphyIndex(&wiphy_index, base_ifname_) &&
+      netlink_utils_->GetWifiGenerationInfo(wiphy_index, &info)) {
+    if (info.capa_2g.ht_support) {
+      *out_mask |= (1 << IWificond::QC_2G_HT_SUPPORT);
+    }
+    if (info.capa_2g.vht_support) {
+      *out_mask |= (1 << IWificond::QC_2G_VHT_SUPPORT);
+    }
+    if (info.capa_2g.sta_he_support) {
+      *out_mask |= (1 << IWificond::QC_2G_STA_HE_SUPPORT);
+    }
+    if (info.capa_2g.sap_he_support) {
+      *out_mask |= (1 << IWificond::QC_2G_SAP_HE_SUPPORT);
+    }
+    if (info.capa_5g.ht_support) {
+      *out_mask |= (1 << IWificond::QC_5G_HT_SUPPORT);
+    }
+    if (info.capa_5g.vht_support) {
+      *out_mask |= (1 << IWificond::QC_5G_VHT_SUPPORT);
+    }
+    if (info.capa_5g.sta_he_support) {
+      *out_mask |= (1 << IWificond::QC_5G_STA_HE_SUPPORT);
+    }
+    if (info.capa_5g.sap_he_support) {
+      *out_mask |= (1 << IWificond::QC_5G_SAP_HE_SUPPORT);
+    }
+  } else {
+    LOG(ERROR) << "Failed to get wifi generation capabilities from kernel";
+    *out_mask = -1;
+  }
+  LOG(INFO) << "wifi generation capability mask: " << *out_mask;
+  return binder::Status::ok();
+}
+
 status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
   if (!PermissionCache::checkCallingPermission(String16(kPermissionDump))) {
     IPCThreadState* ipc = android::IPCThreadState::self();

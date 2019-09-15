@@ -50,6 +50,22 @@ interface IWificond {
     boolean QcAddOrRemoveApInterface(@utf8InCpp String iface_name,
                                      boolean add_iface);
 
+    // Bit indexes for bitmask returned by @QcGetWifiGenerationCapabilities
+    // Kernel advertises HT and VHT support per band
+    const int QC_2G_HT_SUPPORT = 0;
+    const int QC_5G_HT_SUPPORT = 1;
+    const int QC_2G_VHT_SUPPORT = 2;
+    const int QC_5G_VHT_SUPPORT = 3;
+    // Kernel advertises HE support per interface and per band
+    const int QC_2G_STA_HE_SUPPORT = 4;
+    const int QC_5G_STA_HE_SUPPORT = 5;
+    const int QC_2G_SAP_HE_SUPPORT = 6;
+    const int QC_5G_SAP_HE_SUPPORT = 7;
+
+    // Returns wifi generation capabilities bitmask.
+    // Returrns -1 on failure.
+    int QcGetWifiGenerationCapabilities();
+
     // Returns an array of available frequencies for 2.4GHz channels.
     // Returrns null on failure.
     @nullable int[] getAvailable2gChannels();
