@@ -110,45 +110,6 @@ class ClientInterfaceImplTest : public ::testing::Test {
 
 }  // namespace
 
-TEST_F(ClientInterfaceImplTest, SetMacAddressFailsOnInterfaceDownFailure) {
-  EXPECT_CALL(*if_tool_, SetWifiUpState(false)).WillOnce(Return(false));
-  EXPECT_FALSE(
-      client_interface_->SetMacAddress(std::array<uint8_t, ETH_ALEN>()));
-}
-
-TEST_F(ClientInterfaceImplTest, SetMacAddressFailsOnAddressChangeFailure) {
-  EXPECT_CALL(*if_tool_, SetWifiUpState(false)).WillOnce(Return(true));
-  EXPECT_CALL(*if_tool_, SetMacAddress(_, _)).WillOnce(Return(false));
-  EXPECT_FALSE(
-      client_interface_->SetMacAddress(std::array<uint8_t, ETH_ALEN>()));
-}
-
-TEST_F(ClientInterfaceImplTest, SetMacAddressFailsOnInterfaceUpFailure) {
-  EXPECT_CALL(*if_tool_, SetWifiUpState(false)).WillOnce(Return(true));
-  EXPECT_CALL(*if_tool_, SetMacAddress(_, _)).WillOnce(Return(true));
-  EXPECT_CALL(*if_tool_, SetWifiUpState(true)).WillOnce(Return(false));
-  EXPECT_FALSE(
-      client_interface_->SetMacAddress(std::array<uint8_t, ETH_ALEN>()));
-}
-
-TEST_F(ClientInterfaceImplTest, SetMacAddressReturnsTrueOnSuccess) {
-  EXPECT_CALL(*if_tool_, SetWifiUpState(false)).WillOnce(Return(true));
-  EXPECT_CALL(*if_tool_, SetMacAddress(_, _)).WillOnce(Return(true));
-  EXPECT_CALL(*if_tool_, SetWifiUpState(true)).WillOnce(Return(true));
-  EXPECT_TRUE(
-      client_interface_->SetMacAddress(std::array<uint8_t, ETH_ALEN>()));
-}
-
-TEST_F(ClientInterfaceImplTest, SetMacAddressPassesCorrectAddressToIfTool) {
-  EXPECT_CALL(*if_tool_, SetWifiUpState(false)).WillOnce(Return(true));
-  EXPECT_CALL(*if_tool_, SetMacAddress(_,
-      std::array<uint8_t, ETH_ALEN>{{1, 2, 3, 4, 5, 6}}))
-    .WillOnce(Return(true));
-  EXPECT_CALL(*if_tool_, SetWifiUpState(true)).WillOnce(Return(true));
-  EXPECT_TRUE(client_interface_->SetMacAddress(
-      std::array<uint8_t, ETH_ALEN>{{1, 2, 3, 4, 5, 6}}));
-}
-
 /**
  * If the device does not support sending mgmt frame at specified MCS rate,
  * and the caller specifies a MCS < 0, the call should still succeed (and the

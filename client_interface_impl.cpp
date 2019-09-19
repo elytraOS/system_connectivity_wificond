@@ -244,24 +244,6 @@ const std::array<uint8_t, ETH_ALEN>& ClientInterfaceImpl::GetMacAddress() {
   return interface_mac_addr_;
 }
 
-bool ClientInterfaceImpl::SetMacAddress(const std::array<uint8_t, ETH_ALEN>& mac) {
-  if (!if_tool_->SetWifiUpState(false)) {
-    LOG(ERROR) << "SetWifiUpState(false) failed.";
-    return false;
-  }
-  if (!if_tool_->SetMacAddress(interface_name_.c_str(), mac)) {
-    LOG(ERROR) << "SetMacAddress(" << interface_name_ << ", "
-               << LoggingUtils::GetMacString(mac) << ") failed.";
-    return false;
-  }
-  if (!if_tool_->SetWifiUpState(true)) {
-    LOG(ERROR) << "SetWifiUpState(true) failed.";
-    return false;
-  }
-  LOG(DEBUG) << "Successfully SetMacAddress.";
-  return true;
-}
-
 bool ClientInterfaceImpl::RefreshAssociateFreq() {
   // wpa_supplicant fetches associate frequency using the latest scan result.
   // We should follow the same method here before we find a better solution.

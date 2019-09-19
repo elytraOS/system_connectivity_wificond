@@ -50,10 +50,6 @@ interface IClientInterface {
   // Returns null when the underlying interface object is destroyed.
   @nullable IWifiScannerImpl getWifiScannerImpl();
 
-  // Set the MAC address of this interface
-  // Returns true if the set was successful
-  boolean setMacAddress(in byte[] mac);
-
   // Sends an arbitrary 802.11 management frame on the current channel.
   // @param frame Bytes of the 802.11 management frame to be sent, including the
   //     header, but not including the frame check sequence (FCS).
