@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package android.net.wifi;
+package com.android.server.wifi.wificond;
 
-// A callback for receiving pno scanning events.
-interface IPnoScanEvent {
-  oneway void OnPnoNetworkFound();
-  oneway void OnPnoScanFailed();
+// A callback for receiving scanning events.
+interface IScanEvent {
+  oneway void OnScanResultReady();
+  oneway void OnScanFailed();
 }

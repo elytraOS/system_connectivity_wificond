@@ -37,7 +37,6 @@
 #include "wificond/scanning/scan_utils.h"
 #include "wificond/server.h"
 
-using android::net::wifi::IWificond;
 using android::wifi_system::InterfaceTool;
 using android::wificond::ipc_constants::kServiceName;
 using std::unique_ptr;

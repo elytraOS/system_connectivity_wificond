@@ -22,6 +22,8 @@
 
 #include <android-base/macros.h>
 
+#include "com/android/server/wifi/wificond/NativeScanResult.h"
+#include "com/android/server/wifi/wificond/RadioChainInfo.h"
 #include "wificond/net/netlink_manager.h"
 
 namespace com {

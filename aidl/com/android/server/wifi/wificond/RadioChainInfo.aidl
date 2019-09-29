@@ -16,17 +16,7 @@
 
 package com.android.server.wifi.wificond;
 
-import com.android.server.wifi.wificond.ChannelSettings;
-import com.android.server.wifi.wificond.HiddenNetwork;
-
-parcelable SingleScanSettings {
-    /**
-     * Should be one of
-     *   - IWifiScannerImpl.SCAN_TYPE_LOW_SPAN
-     *   - IWifiScannerImpl.SCAN_TYPE_LOW_POWER
-     *   - IWifiScannerImpl.SCAN_TYPE_HIGH_ACCURACY
-     */
-    int scanType;
-    ChannelSettings[] channelSettings;
-    HiddenNetwork[] hiddenNetworks;
+parcelable RadioChainInfo {
+    int chainId;
+    int level;
 }

@@ -27,7 +27,7 @@
 
 #include "wificond/net/netlink_manager.h"
 
-#include "android/net/wifi/IApInterface.h"
+#include "com/android/server/wifi/wificond/IApInterface.h"
 
 namespace android {
 namespace wificond {
@@ -48,7 +48,7 @@ class ApInterfaceImpl {
   ~ApInterfaceImpl();
 
   // Get a pointer to the binder representing this ApInterfaceImpl.
-  android::sp<android::net::wifi::IApInterface> GetBinder() const;
+  android::sp<com::android::server::wifi::wificond::IApInterface> GetBinder() const;
 
   std::string GetInterfaceName() { return interface_name_; }
   int GetNumberOfAssociatedStations() const;

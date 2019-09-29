@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package android.net.wifi;
+package com.android.server.wifi.wificond;
 
-import android.net.wifi.IApInterface;
-import android.net.wifi.IClientInterface;
-import android.net.wifi.IInterfaceEventCallback;
+import com.android.server.wifi.wificond.IApInterface;
+import com.android.server.wifi.wificond.IClientInterface;
+import com.android.server.wifi.wificond.IInterfaceEventCallback;
 
 // Service interface that exposes primitives for controlling the WiFi
 // subsystems of a device.
