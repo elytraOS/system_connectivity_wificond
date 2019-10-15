@@ -54,6 +54,9 @@ uint32_t k5GHzFrequencyLowerBound = 5000;
 // for "vehicular communication systems".
 uint32_t k5GHzFrequencyUpperBound = 5850;
 
+uint32_t k6GHzFrequencyLowerBound = 5925;
+uint32_t k6GHzFrequencyUpperBound = 7125;
+
 bool IsExtFeatureFlagSet(
     const std::vector<uint8_t>& ext_feature_flags_bytes,
     enum nl80211_ext_feature_index ext_feature_flag) {
@@ -479,6 +482,7 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
   vector<uint32_t> frequencies_2g;
   vector<uint32_t> frequencies_5g;
   vector<uint32_t> frequencies_dfs;
+  vector<uint32_t> frequencies_6g;
   for (unsigned int band_index = 0; band_index < bands.size(); band_index++) {
     NL80211NestedAttr freqs_attr(0);
     if (!bands[band_index].GetAttribute(NL80211_BAND_ATTR_FREQS, &freqs_attr)) {
@@ -526,11 +530,14 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
 
         // Otherwise, this is a regular 5g frequency.
         frequencies_5g.push_back(frequency_value);
+      } else if (frequency_value > k6GHzFrequencyLowerBound &&
+            frequency_value < k6GHzFrequencyUpperBound) {
+          frequencies_6g.push_back(frequency_value);
       }
 
     }
   }
-  *out_band_info = BandInfo(frequencies_2g, frequencies_5g, frequencies_dfs);
+  *out_band_info = BandInfo(frequencies_2g, frequencies_5g, frequencies_dfs, frequencies_6g);
   return true;
 }
 

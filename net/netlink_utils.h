@@ -52,16 +52,20 @@ struct BandInfo {
   BandInfo() = default;
   BandInfo(std::vector<uint32_t>& band_2g_,
            std::vector<uint32_t>& band_5g_,
-           std::vector<uint32_t>& band_dfs_)
+           std::vector<uint32_t>& band_dfs_,
+           std::vector<uint32_t>& band_6g_)
       : band_2g(band_2g_),
         band_5g(band_5g_),
-        band_dfs(band_dfs_) {}
+        band_dfs(band_dfs_),
+        band_6g(band_6g_) {}
   // Frequencies for 2.4 GHz band.
   std::vector<uint32_t> band_2g;
   // Frequencies for 5 GHz band without DFS.
   std::vector<uint32_t> band_5g;
   // Frequencies for DFS.
   std::vector<uint32_t> band_dfs;
+  // Frequencies for 6 GHz band.
+  std::vector<uint32_t> band_6g;
 };
 
 struct WifiGenerationCapabilities {
