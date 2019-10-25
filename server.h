@@ -104,8 +104,8 @@ class Server : public com::android::server::wifi::wificond::BnWificond {
   // interface on behalf of createApInterace(), it is Hostapd that configure
   // the interface to Ap mode later.
   // Returns true on success, false otherwise.
-  bool SetupInterface(const std::string& iface_name, InterfaceInfo* interface);
-  bool RefreshWiphyIndex(const std::string& iface_num);
+  bool SetupInterface(const std::string& iface_name, InterfaceInfo* interface,
+      uint32_t *wiphy_index);
   void LogSupportedBands();
   void OnRegDomainChanged(std::string& country_code);
   void BroadcastClientInterfaceReady(
@@ -119,11 +119,12 @@ class Server : public com::android::server::wifi::wificond::BnWificond {
   void MarkDownAllInterfaces();
 
   const std::string base_ifname_;
+  uint32_t base_wiphy_index_;
   const std::unique_ptr<wifi_system::InterfaceTool> if_tool_;
   NetlinkUtils* const netlink_utils_;
   ScanUtils* const scan_utils_;
 
-  uint32_t wiphy_index_;
+  std::map<std::string, uint32_t> wiphy_indexes_;
   std::map<std::string, std::unique_ptr<ApInterfaceImpl>> ap_interfaces_;
   std::map<std::string, std::unique_ptr<ClientInterfaceImpl>> client_interfaces_;
   std::vector<android::sp<com::android::server::wifi::wificond::IInterfaceEventCallback>>

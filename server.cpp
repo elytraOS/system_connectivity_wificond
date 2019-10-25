@@ -59,6 +59,7 @@ Server::Server(unique_ptr<InterfaceTool> if_tool,
                NetlinkUtils* netlink_utils,
                ScanUtils* scan_utils)
     : base_ifname_(kBaseIfName),
+      base_wiphy_index_(0),
       if_tool_(std::move(if_tool)),
       netlink_utils_(netlink_utils),
       scan_utils_(scan_utils) {
@@ -94,9 +95,13 @@ Status Server::UnregisterCallback(const sp<IInterfaceEventCallback>& callback) {
 Status Server::createApInterface(const std::string& iface_name,
                                  sp<IApInterface>* created_interface) {
   InterfaceInfo interface;
-  if (!SetupInterface(iface_name, &interface)) {
+  uint32_t wiphy_index;
+
+  if (!SetupInterface(iface_name, &interface, &wiphy_index)) {
     return Status::ok();  // Logging was done internally
   }
+
+  LOG(DEBUG) << "createApInterface: wiphy_index " << wiphy_index << " iface_name " << iface_name;
 
   unique_ptr<ApInterfaceImpl> ap_interface(new ApInterfaceImpl(
       interface.name,
@@ -106,6 +111,7 @@ Status Server::createApInterface(const std::string& iface_name,
   *created_interface = ap_interface->GetBinder();
   BroadcastApInterfaceReady(ap_interface->GetBinder());
   ap_interfaces_[iface_name] = std::move(ap_interface);
+  wiphy_indexes_[iface_name] = wiphy_index;
 
   return Status::ok();
 }
@@ -119,18 +125,29 @@ Status Server::tearDownApInterface(const std::string& iface_name,
     ap_interfaces_.erase(iter);
     *out_success = true;
   }
+
+  const auto iter_wi = wiphy_indexes_.find(iface_name);
+  if (iter_wi != wiphy_indexes_.end()) {
+    LOG(DEBUG) << "tearDownApInterface: erasing wiphy_index for iface_name " << iface_name;
+    wiphy_indexes_.erase(iter_wi);
+  }
+
   return Status::ok();
 }
 
 Status Server::createClientInterface(const std::string& iface_name,
                                      sp<IClientInterface>* created_interface) {
   InterfaceInfo interface;
-  if (!SetupInterface(iface_name, &interface)) {
+  uint32_t wiphy_index;
+
+  if (!SetupInterface(iface_name, &interface, &wiphy_index)) {
     return Status::ok();  // Logging was done internally
   }
 
+  LOG(DEBUG) << "createClientInterface: wiphy_index " << wiphy_index << " iface_name " << iface_name;
+
   unique_ptr<ClientInterfaceImpl> client_interface(new ClientInterfaceImpl(
-      wiphy_index_,
+      wiphy_index,
       interface.name,
       interface.index,
       interface.mac_address,
@@ -140,6 +157,7 @@ Status Server::createClientInterface(const std::string& iface_name,
   *created_interface = client_interface->GetBinder();
   BroadcastClientInterfaceReady(client_interface->GetBinder());
   client_interfaces_[iface_name] = std::move(client_interface);
+  wiphy_indexes_[iface_name] = wiphy_index;
 
   return Status::ok();
 }
@@ -153,6 +171,13 @@ Status Server::tearDownClientInterface(const std::string& iface_name,
     client_interfaces_.erase(iter);
     *out_success = true;
   }
+
+  const auto iter_wi = wiphy_indexes_.find(iface_name);
+  if (iter_wi != wiphy_indexes_.end()) {
+    LOG(DEBUG) << "tearDownClientInterface: erasing wiphy_index for iface_name " << iface_name;
+    wiphy_indexes_.erase(iter_wi);
+  }
+
   return Status::ok();
 }
 
@@ -169,7 +194,10 @@ Status Server::tearDownInterfaces() {
 
   MarkDownAllInterfaces();
 
-  netlink_utils_->UnsubscribeRegDomainChange(wiphy_index_);
+  for (auto& it : wiphy_indexes_) {
+    netlink_utils_->UnsubscribeRegDomainChange(it.second);
+  }
+  wiphy_indexes_.clear();
 
   return Status::ok();
 }
@@ -255,11 +283,11 @@ status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
   }
 
   stringstream ss;
-  ss << "Current wiphy index: " << wiphy_index_ << endl;
   ss << "Cached interfaces list from kernel message: " << endl;
   for (const auto& iface : interfaces_) {
     ss << "Interface index: " << iface.index
        << ", name: " << iface.name
+       << ", wiphy index: " << wiphy_indexes_[iface.name]
        << ", mac address: "
        << LoggingUtils::GetMacString(iface.mac_address) << endl;
   }
@@ -288,13 +316,11 @@ status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
 }
 
 void Server::MarkDownAllInterfaces() {
-  uint32_t wiphy_index;
-  vector<InterfaceInfo> interfaces;
-  if (netlink_utils_->GetWiphyIndex(&wiphy_index, base_ifname_) &&
-      netlink_utils_->GetInterfaces(wiphy_index, &interfaces)) {
-    for (InterfaceInfo& interface : interfaces) {
-      if_tool_->SetUpState(interface.name.c_str(), false);
-    }
+  std::string iface_name;
+
+  for (auto& it : wiphy_indexes_) {
+    iface_name = it.first;
+    if_tool_->SetUpState(iface_name.c_str(), false);
   }
 }
 
@@ -304,7 +330,7 @@ Status Server::getAvailable2gChannels(
   ScanCapabilities scan_capabilities_ignored;
   WiphyFeatures wiphy_features_ignored;
 
-  if (!netlink_utils_->GetWiphyInfo(wiphy_index_, &band_info,
+  if (!netlink_utils_->GetWiphyInfo(base_wiphy_index_, &band_info,
                                     &scan_capabilities_ignored,
                                     &wiphy_features_ignored)) {
     LOG(ERROR) << "Failed to get wiphy info from kernel";
@@ -323,7 +349,7 @@ Status Server::getAvailable5gNonDFSChannels(
   ScanCapabilities scan_capabilities_ignored;
   WiphyFeatures wiphy_features_ignored;
 
-  if (!netlink_utils_->GetWiphyInfo(wiphy_index_, &band_info,
+  if (!netlink_utils_->GetWiphyInfo(base_wiphy_index_, &band_info,
                                     &scan_capabilities_ignored,
                                     &wiphy_features_ignored)) {
     LOG(ERROR) << "Failed to get wiphy info from kernel";
@@ -342,7 +368,7 @@ Status Server::getAvailableDFSChannels(
   ScanCapabilities scan_capabilities_ignored;
   WiphyFeatures wiphy_features_ignored;
 
-  if (!netlink_utils_->GetWiphyInfo(wiphy_index_, &band_info,
+  if (!netlink_utils_->GetWiphyInfo(base_wiphy_index_, &band_info,
                                     &scan_capabilities_ignored,
                                     &wiphy_features_ignored)) {
     LOG(ERROR) << "Failed to get wiphy info from kernel";
@@ -356,21 +382,28 @@ Status Server::getAvailableDFSChannels(
 }
 
 bool Server::SetupInterface(const std::string& iface_name,
-                            InterfaceInfo* interface) {
-  if (!RefreshWiphyIndex(iface_name)) {
+                            InterfaceInfo* interface,
+                            uint32_t *wiphy_index) {
+  if (!netlink_utils_->GetWiphyIndex(wiphy_index, iface_name)) {
+    LOG(ERROR) << "Failed to get wiphy index";
     return false;
   }
 
   netlink_utils_->SubscribeRegDomainChange(
-          wiphy_index_,
+          *wiphy_index,
           std::bind(&Server::OnRegDomainChanged,
           this,
           _1));
 
   interfaces_.clear();
-  if (!netlink_utils_->GetInterfaces(wiphy_index_, &interfaces_)) {
-    LOG(ERROR) << "Failed to get interfaces info from kernel";
+  if (!netlink_utils_->GetInterfaces(*wiphy_index, &interfaces_)) {
+    LOG(ERROR) << "Failed to get interfaces info from kernel for iface_name " << iface_name << " wiphy_index " << *wiphy_index;
     return false;
+  }
+
+  if (iface_name == base_ifname_) {
+    base_wiphy_index_ = *wiphy_index;
+    LOG(INFO) << "setting base_wiphy_index_ to " << base_wiphy_index_;
   }
 
   for (const auto& iface : interfaces_) {
@@ -382,14 +415,6 @@ bool Server::SetupInterface(const std::string& iface_name,
 
   LOG(ERROR) << "No usable interface found";
   return false;
-}
-
-bool Server::RefreshWiphyIndex(const std::string& iface_name) {
-  if (!netlink_utils_->GetWiphyIndex(&wiphy_index_, iface_name)) {
-    LOG(ERROR) << "Failed to get wiphy index";
-    return false;
-  }
-  return true;
 }
 
 void Server::OnRegDomainChanged(std::string& country_code) {
@@ -405,7 +430,7 @@ void Server::LogSupportedBands() {
   BandInfo band_info;
   ScanCapabilities scan_capabilities;
   WiphyFeatures wiphy_features;
-  netlink_utils_->GetWiphyInfo(wiphy_index_,
+  netlink_utils_->GetWiphyInfo(base_wiphy_index_,
                                &band_info,
                                &scan_capabilities,
                                &wiphy_features);
