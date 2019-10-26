@@ -121,10 +121,21 @@ aidl_interface {
 cc_library_static {
     name: "libwificond_ipc",
     defaults: ["wificond_defaults"],
-    srcs: ["ipc_constants.cpp"],
+    srcs: [
+        "ipc_constants.cpp",
+        ":libwificond_ipc_user_space_aidl"
+    ],
     shared_libs: ["libbinder"],
     // static_libs doesn't compile, needs to be whole_static_libs
     whole_static_libs: ["libwificond_aidl-cpp"],
+}
+
+filegroup {
+    name: "libwificond_ipc_user_space_aidl",
+    srcs: [
+        "aidl/com/android/server/wifi/wificond/NativeWifiClient.aidl",
+    ],
+    path: "aidl",
 }
 
 //
