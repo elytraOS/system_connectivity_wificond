@@ -36,9 +36,11 @@
 #include "wificond/net/netlink_utils.h"
 #include "wificond/scanning/scan_utils.h"
 #include "wificond/server.h"
+#include "wifi_keystore_hal_connector.h"
 
 using android::wifi_system::InterfaceTool;
 using android::wificond::ipc_constants::kServiceName;
+using android::wificond::WifiKeystoreHalConnector;
 using std::unique_ptr;
 
 namespace {
@@ -126,6 +128,9 @@ int main(int argc, char** argv) {
       &netlink_utils,
       &scan_utils));
   RegisterServiceOrCrash(server.get());
+
+  WifiKeystoreHalConnector keystore_connector;
+  keystore_connector.start();
 
   event_dispatcher->Poll();
   LOG(INFO) << "wificond is about to exit";

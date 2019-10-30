@@ -30,17 +30,29 @@ cc_binary {
     name: "wificond",
     defaults: ["wificond_defaults"],
     init_rc: ["wificond.rc"],
-    srcs: ["main.cpp"],
+    srcs: [
+	"main.cpp",
+	"wifi_keystore_hal_connector.cpp"
+    ],
+    include_dirs: ["system/security/keystore/include"],
 
     shared_libs: [
         "libbinder",
         "libbase",
         "libcutils",
+        "libhidlbase",
+        "libkeystore_aidl",
+        "libkeystore_binder",
+        "libkeystore_parcelables",
         "libminijail",
         "libutils",
         "libwifi-system-iface",
+        "android.system.wifi.keystore@1.0",
     ],
-    static_libs: ["libwificond"],
+    static_libs: [
+        "libwificond", // Wificond daemon
+        "libwifikeystorehal"  // Wifi Keystore HAL service
+    ],
 }
 
 //
