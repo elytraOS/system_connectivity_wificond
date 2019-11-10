@@ -19,6 +19,7 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
 #include <linux/if_ether.h>
 
@@ -28,6 +29,9 @@
 #include "wificond/net/netlink_manager.h"
 
 #include "com/android/server/wifi/wificond/IApInterface.h"
+
+using com::android::server::wifi::wificond::IApInterface;
+using com::android::server::wifi::wificond::NativeWifiClient;
 
 namespace android {
 namespace wificond {
@@ -48,10 +52,10 @@ class ApInterfaceImpl {
   ~ApInterfaceImpl();
 
   // Get a pointer to the binder representing this ApInterfaceImpl.
-  android::sp<com::android::server::wifi::wificond::IApInterface> GetBinder() const;
+  android::sp<IApInterface> GetBinder() const;
 
   std::string GetInterfaceName() { return interface_name_; }
-  int GetNumberOfAssociatedStations() const;
+  std::vector<NativeWifiClient> GetConnectedClients() const;
   void Dump(std::stringstream* ss) const;
 
  private:
@@ -61,8 +65,8 @@ class ApInterfaceImpl {
   wifi_system::InterfaceTool* const if_tool_;
   const android::sp<ApInterfaceBinder> binder_;
 
-  // Number of associated stations.
-  int number_of_associated_stations_;
+  // Currently connected access point clients
+  std::vector<NativeWifiClient> connected_clients_;
 
   void OnStationEvent(StationEvent event,
                       const std::array<uint8_t, ETH_ALEN>& mac_address);

@@ -231,7 +231,7 @@ TEST_F(ScannerTest, TestSingleScanFailure) {
   EXPECT_FALSE(success);
 }
 
-TEST_F(ScannerTest, TestProcessAbortsOnScanReturningNoDeviceError) {
+TEST_F(ScannerTest, TestProcessAbortsOnScanReturningNoDeviceErrorSeveralTimes) {
   scanner_impl_.reset(new ScannerImpl(kFakeInterfaceIndex,
                                       scan_capabilities_, wiphy_features_,
                                       &client_interface_impl_,
@@ -243,8 +243,14 @@ TEST_F(ScannerTest, TestProcessAbortsOnScanReturningNoDeviceError) {
               ReturnErrorCodeForScanRequest, ENODEV,
               _1, _2, _3, _4, _5, _6)));
 
-  bool success_ignored;
-  EXPECT_DEATH(scanner_impl_->scan(SingleScanSettings(), &success_ignored),
+  bool single_scan_failure;
+  EXPECT_TRUE(scanner_impl_->scan(SingleScanSettings(), &single_scan_failure).isOk());
+  EXPECT_FALSE(single_scan_failure);
+  EXPECT_TRUE(scanner_impl_->scan(SingleScanSettings(), &single_scan_failure).isOk());
+  EXPECT_FALSE(single_scan_failure);
+  EXPECT_TRUE(scanner_impl_->scan(SingleScanSettings(), &single_scan_failure).isOk());
+  EXPECT_FALSE(single_scan_failure);
+  EXPECT_DEATH(scanner_impl_->scan(SingleScanSettings(), &single_scan_failure),
                "Driver is in a bad state*");
 }
 

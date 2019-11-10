@@ -182,7 +182,8 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
         nodev_counter_ ++;
         LOG(WARNING) << "Scan failed with error=nodev. counter=" << nodev_counter_;
     }
-    CHECK(error_code != ENODEV || nodev_counter_ <= 3) << "Driver is in a bad state, restarting wificond";
+    CHECK(error_code != ENODEV || nodev_counter_ <= 3)
+        << "Driver is in a bad state, restarting wificond";
     *out_success = false;
     return Status::ok();
   }
@@ -293,7 +294,8 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
         LOG(WARNING) << "Pno Scan failed with error=nodev. counter=" << nodev_counter_;
     }
     LOG(ERROR) << "Failed to start pno scan";
-    CHECK(error_code != ENODEV || nodev_counter_ <= 3) << "Driver is in a bad state, restarting wificond";
+    CHECK(error_code != ENODEV || nodev_counter_ <= 3)
+        << "Driver is in a bad state, restarting wificond";
     return false;
   }
   string freq_string;

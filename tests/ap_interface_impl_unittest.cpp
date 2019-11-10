@@ -24,6 +24,7 @@
 #include <gtest/gtest.h>
 #include <wifi_system_test/mock_interface_tool.h>
 
+#include "wificond/logging_utils.h"
 #include "wificond/tests/mock_ap_interface_event_callback.h"
 #include "wificond/tests/mock_netlink_manager.h"
 #include "wificond/tests/mock_netlink_utils.h"
@@ -31,6 +32,7 @@
 #include "wificond/ap_interface_impl.h"
 
 using android::wifi_system::MockInterfaceTool;
+using com::android::server::wifi::wificond::NativeWifiClient;
 using std::array;
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -49,7 +51,8 @@ namespace {
 
 const char kTestInterfaceName[] = "testwifi0";
 const uint32_t kTestInterfaceIndex = 42;
-const array<uint8_t, ETH_ALEN> kFakeMacAddress = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
+const array<uint8_t, ETH_ALEN> kFakeMacAddress01 = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
+const array<uint8_t, ETH_ALEN> kFakeMacAddress02 = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf7};
 
 void CaptureStationEventHandler(
     OnStationEventHandler* out_handler,
@@ -87,7 +90,7 @@ class ApInterfaceImplTest : public ::testing::Test {
 
 }  // namespace
 
-TEST_F(ApInterfaceImplTest, CanGetNumberOfAssociatedStations) {
+TEST_F(ApInterfaceImplTest, CanGetConnectedClients) {
   OnStationEventHandler handler;
   EXPECT_CALL(*netlink_utils_,
       SubscribeStationEvent(kTestInterfaceIndex, _)).
@@ -99,17 +102,49 @@ TEST_F(ApInterfaceImplTest, CanGetNumberOfAssociatedStations) {
         netlink_utils_.get(),
         if_tool_.get()));
 
-  array<uint8_t, ETH_ALEN> fake_mac_address = kFakeMacAddress;
-  EXPECT_EQ(0, ap_interface_->GetNumberOfAssociatedStations());
-  handler(NEW_STATION, fake_mac_address);
-  EXPECT_EQ(1, ap_interface_->GetNumberOfAssociatedStations());
-  handler(NEW_STATION, fake_mac_address);
-  EXPECT_EQ(2, ap_interface_->GetNumberOfAssociatedStations());
-  handler(DEL_STATION, fake_mac_address);
-  EXPECT_EQ(1, ap_interface_->GetNumberOfAssociatedStations());
+  array<uint8_t, ETH_ALEN> fake_mac_address_01 = kFakeMacAddress01;
+  array<uint8_t, ETH_ALEN> fake_mac_address_02 = kFakeMacAddress02;
+  std::vector<NativeWifiClient> associated_stations =
+    ap_interface_->GetConnectedClients();
+  int numberOfStations = static_cast<int>(associated_stations.size());
+  EXPECT_EQ(0, numberOfStations);
+  handler(NEW_STATION, fake_mac_address_01);
+  associated_stations = ap_interface_->GetConnectedClients();
+  numberOfStations = static_cast<int>(associated_stations.size());
+  EXPECT_EQ(1, numberOfStations);
+  handler(NEW_STATION, fake_mac_address_02);
+  associated_stations = ap_interface_->GetConnectedClients();
+  numberOfStations = static_cast<int>(associated_stations.size());
+  EXPECT_EQ(2, numberOfStations);
+  handler(DEL_STATION, fake_mac_address_01);
+  associated_stations = ap_interface_->GetConnectedClients();
+  numberOfStations = static_cast<int>(associated_stations.size());
+  EXPECT_EQ(1, numberOfStations);
 }
 
-TEST_F(ApInterfaceImplTest, CallbackIsCalledOnNumAssociatedStationsChanged) {
+TEST_F(ApInterfaceImplTest, CanGetConnectedClientsSetsValues) {
+  OnStationEventHandler handler;
+  EXPECT_CALL(*netlink_utils_,
+      SubscribeStationEvent(kTestInterfaceIndex, _)).
+          WillOnce(Invoke(bind(CaptureStationEventHandler, &handler, _1, _2)));
+
+  ap_interface_.reset(new ApInterfaceImpl(
+        kTestInterfaceName,
+        kTestInterfaceIndex,
+        netlink_utils_.get(),
+        if_tool_.get()));
+
+  array<uint8_t, ETH_ALEN> fake_mac_address_01 = kFakeMacAddress01;
+  vector<uint8_t> expected_mac_address =
+    vector<uint8_t>(fake_mac_address_01.begin(), fake_mac_address_01.end());
+  handler(NEW_STATION, fake_mac_address_01);
+  std::vector<NativeWifiClient> associated_stations =
+    ap_interface_->GetConnectedClients();
+  NativeWifiClient station = associated_stations[0];
+  EXPECT_EQ(expected_mac_address, station.macAddress);
+}
+
+TEST_F(ApInterfaceImplTest, CallbackIsCalledOnConnectedClientsChanged) {
   OnStationEventHandler handler;
   EXPECT_CALL(*netlink_utils_, SubscribeStationEvent(kTestInterfaceIndex, _))
       .WillOnce(Invoke(bind(CaptureStationEventHandler, &handler, _1, _2)));
@@ -123,13 +158,34 @@ TEST_F(ApInterfaceImplTest, CallbackIsCalledOnNumAssociatedStationsChanged) {
   EXPECT_TRUE(binder->registerCallback(callback, &out_success).isOk());
   EXPECT_TRUE(out_success);
 
-  array<uint8_t, ETH_ALEN> fake_mac_address = kFakeMacAddress;
-  EXPECT_CALL(*callback, onNumAssociatedStationsChanged(1));
-  handler(NEW_STATION, fake_mac_address);
-  EXPECT_CALL(*callback, onNumAssociatedStationsChanged(2));
-  handler(NEW_STATION, fake_mac_address);
-  EXPECT_CALL(*callback, onNumAssociatedStationsChanged(1));
-  handler(DEL_STATION, fake_mac_address);
+  array<uint8_t, ETH_ALEN> fake_mac_address_01 = kFakeMacAddress01;
+  array<uint8_t, ETH_ALEN> fake_mac_address_02 = kFakeMacAddress02;
+  EXPECT_CALL(*callback, onConnectedClientsChanged(_)).Times(3);
+  handler(NEW_STATION, fake_mac_address_01);
+  handler(NEW_STATION, fake_mac_address_02);
+  handler(DEL_STATION, fake_mac_address_01);
+}
+
+TEST_F(ApInterfaceImplTest, CallbackIsCalledOnConnectedClientsChangedOnlyOnDiff) {
+  OnStationEventHandler handler;
+  EXPECT_CALL(*netlink_utils_, SubscribeStationEvent(kTestInterfaceIndex, _))
+      .WillOnce(Invoke(bind(CaptureStationEventHandler, &handler, _1, _2)));
+  ap_interface_.reset(new ApInterfaceImpl(
+      kTestInterfaceName, kTestInterfaceIndex, netlink_utils_.get(),
+      if_tool_.get()));
+
+  auto binder = ap_interface_->GetBinder();
+  sp<MockApInterfaceEventCallback> callback(new MockApInterfaceEventCallback());
+  bool out_success = false;
+  EXPECT_TRUE(binder->registerCallback(callback, &out_success).isOk());
+  EXPECT_TRUE(out_success);
+
+  array<uint8_t, ETH_ALEN> fake_mac_address_01 = kFakeMacAddress01;
+  EXPECT_CALL(*callback, onConnectedClientsChanged(_)).Times(2);
+  handler(NEW_STATION, fake_mac_address_01);
+  handler(NEW_STATION, fake_mac_address_01);
+  handler(DEL_STATION, fake_mac_address_01);
+  handler(DEL_STATION, fake_mac_address_01);
 }
 
 TEST_F(ApInterfaceImplTest, CallbackIsCalledOnSoftApChannelSwitched) {

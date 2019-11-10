@@ -30,18 +30,29 @@ cc_binary {
     name: "wificond",
     defaults: ["wificond_defaults"],
     init_rc: ["wificond.rc"],
-    srcs: ["main.cpp"],
+    srcs: [
+	"main.cpp",
+	"wifi_keystore_hal_connector.cpp"
+    ],
+    include_dirs: ["system/security/keystore/include"],
 
     shared_libs: [
         "libbinder",
         "libbase",
         "libcutils",
-        "libhwbinder",
+        "libhidlbase",
+        "libkeystore_aidl",
+        "libkeystore_binder",
+        "libkeystore_parcelables",
         "libminijail",
         "libutils",
         "libwifi-system-iface",
+        "android.system.wifi.keystore@1.0",
     ],
-    static_libs: ["libwificond"],
+    static_libs: [
+        "libwificond", // Wificond daemon
+        "libwifikeystorehal"  // Wifi Keystore HAL service
+    ],
 }
 
 //
@@ -132,10 +143,21 @@ aidl_interface {
 cc_library_static {
     name: "libwificond_ipc",
     defaults: ["wificond_defaults"],
-    srcs: ["ipc_constants.cpp"],
+    srcs: [
+        "ipc_constants.cpp",
+        ":libwificond_ipc_user_space_aidl"
+    ],
     shared_libs: ["libbinder"],
     // static_libs doesn't compile, needs to be whole_static_libs
     whole_static_libs: ["libwificond_aidl-cpp"],
+}
+
+filegroup {
+    name: "libwificond_ipc_user_space_aidl",
+    srcs: [
+        "aidl/com/android/server/wifi/wificond/NativeWifiClient.aidl",
+    ],
+    path: "aidl",
 }
 
 //

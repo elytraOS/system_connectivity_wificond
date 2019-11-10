@@ -16,8 +16,10 @@
 
 package com.android.server.wifi.wificond;
 
+import com.android.server.wifi.wificond.NativeWifiClient;
+
 // A callback for receiving events related to soft AP.
-interface IApInterfaceEventCallback {
+oneway interface IApInterfaceEventCallback {
 
   // Channel bandwidth type. Used in |onSoftApChannelSwitched|
   const int BANDWIDTH_INVALID = 0;
@@ -28,14 +30,14 @@ interface IApInterfaceEventCallback {
   const int BANDWIDTH_80P80 = 5;
   const int BANDWIDTH_160 = 6;
 
-  // Signals that number of stations associated to this soft Ap has changed.
+  // Signals that the stations associated to this soft Ap have changed.
   //
-  // @param numStations Number of associated stations after change
-  oneway void onNumAssociatedStationsChanged(int numStations);
+  // @param clients The associated stations after change
+  void onConnectedClientsChanged(in NativeWifiClient[] clients);
 
   // Signals a channel switch event for this soft Ap.
   //
   // @param frequency Represents the frequency of the channel in MHz
   // @param bandwidth Bandwidth of the channel, one of the values from |BANDWIDTH_*|
-  oneway void onSoftApChannelSwitched(int frequency, int bandwidth);
+  void onSoftApChannelSwitched(int frequency, int bandwidth);
 }
