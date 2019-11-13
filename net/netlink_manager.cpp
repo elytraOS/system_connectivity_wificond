@@ -47,7 +47,7 @@ namespace {
 // netlink.h suggests NLMSG_GOODSIZE to be at most 8192 bytes.
 constexpr int kReceiveBufferSize = 8 * 1024;
 constexpr uint32_t kBroadcastSequenceNumber = 0;
-constexpr int kMaximumNetlinkMessageWaitMilliSeconds = 300;
+constexpr int kMaximumNetlinkMessageWaitMilliSeconds = 1000;
 uint8_t ReceiveBuffer[kReceiveBufferSize];
 
 void AppendPacket(vector<unique_ptr<const NL80211Packet>>* vec,
