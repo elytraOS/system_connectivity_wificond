@@ -124,7 +124,6 @@ aidl_interface {
     name: "libwificond_aidl",
     local_include_dir: "aidl",
     srcs: ["aidl/**/*.aidl"],
-    api_dir: "api",
     backend: {
         ndk: {
             enabled: false
