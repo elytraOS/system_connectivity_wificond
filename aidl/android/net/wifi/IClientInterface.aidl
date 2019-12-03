@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.server.wifi.wificond;
+package android.net.wifi;
 
-import com.android.server.wifi.wificond.ISendMgmtFrameEvent;
-import com.android.server.wifi.wificond.IWifiScannerImpl;
+import android.net.wifi.ISendMgmtFrameEvent;
+import android.net.wifi.IWifiScannerImpl;
 
 // IClientInterface represents a network interface that can be used to connect
 // to access points and obtain internet connectivity.

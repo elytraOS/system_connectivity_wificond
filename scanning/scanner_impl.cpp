@@ -26,10 +26,10 @@
 #include "wificond/scanning/scan_utils.h"
 
 using android::binder::Status;
+using android::net::wifi::IPnoScanEvent;
+using android::net::wifi::IScanEvent;
+using android::net::wifi::IWifiScannerImpl;
 using android::sp;
-using com::android::server::wifi::wificond::IPnoScanEvent;
-using com::android::server::wifi::wificond::IScanEvent;
-using com::android::server::wifi::wificond::IWifiScannerImpl;
 using com::android::server::wifi::wificond::NativeScanResult;
 using com::android::server::wifi::wificond::PnoSettings;
 using com::android::server::wifi::wificond::SingleScanSettings;
@@ -64,9 +64,6 @@ constexpr const int kPnoScanDefaultFreqs[] = {2412, 2417, 2422, 2427, 2432, 2437
 
 namespace android {
 namespace wificond {
-
-const uint32_t ScannerImpl::kFastScanIterations = 3;
-const uint32_t ScannerImpl::kSlowScanIntervalMultiplier = 3;
 
 ScannerImpl::ScannerImpl(uint32_t interface_index,
                          const ScanCapabilities& scan_capabilities,
@@ -150,8 +147,8 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
   bool request_random_mac =
       wiphy_features_.supports_random_mac_oneshot_scan &&
       !client_interface_->IsAssociated();
-  int scan_type = scan_settings.scanType;
-  if (!IsScanTypeSupported(scan_settings.scanType, wiphy_features_)) {
+  int scan_type = scan_settings.scan_type_;
+  if (!IsScanTypeSupported(scan_settings.scan_type_, wiphy_features_)) {
     LOG(DEBUG) << "Ignoring scan type because device does not support it";
     scan_type = SCAN_TYPE_DEFAULT;
   }
@@ -160,19 +157,19 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
   vector<vector<uint8_t>> ssids = {{}};
 
   vector<vector<uint8_t>> skipped_scan_ssids;
-  for (auto& network : scan_settings.hiddenNetworks) {
+  for (auto& network : scan_settings.hidden_networks_) {
     if (ssids.size() + 1 > scan_capabilities_.max_num_scan_ssids) {
-      skipped_scan_ssids.emplace_back(network.ssid);
+      skipped_scan_ssids.emplace_back(network.ssid_);
       continue;
     }
-    ssids.push_back(network.ssid);
+    ssids.push_back(network.ssid_);
   }
 
   LogSsidList(skipped_scan_ssids, "Skip scan ssid for single scan");
 
   vector<uint32_t> freqs;
-  for (auto& channel : scan_settings.channelSettings) {
-    freqs.push_back(channel.frequency);
+  for (auto& channel : scan_settings.channel_settings_) {
+    freqs.push_back(channel.frequency_);
   }
 
   int error_code = 0;
@@ -212,29 +209,29 @@ void ScannerImpl::ParsePnoSettings(const PnoSettings& pno_settings,
   vector<vector<uint8_t>> skipped_match_ssids;
   std::set<int32_t> unique_frequencies;
   int num_networks_no_freqs = 0;
-  for (auto& network : pno_settings.pnoNetworks) {
+  for (auto& network : pno_settings.pno_networks_) {
     // Add hidden network ssid.
-    if (network.isHidden) {
+    if (network.is_hidden_) {
       if (scan_ssids->size() + 1 >
           scan_capabilities_.max_num_sched_scan_ssids) {
-        skipped_scan_ssids.emplace_back(network.ssid);
+        skipped_scan_ssids.emplace_back(network.ssid_);
         continue;
       }
-      scan_ssids->push_back(network.ssid);
+      scan_ssids->push_back(network.ssid_);
     }
 
     if (match_ssids->size() + 1 > scan_capabilities_.max_match_sets) {
-      skipped_match_ssids.emplace_back(network.ssid);
+      skipped_match_ssids.emplace_back(network.ssid_);
       continue;
     }
-    match_ssids->push_back(network.ssid);
+    match_ssids->push_back(network.ssid_);
     match_security->push_back(kNetworkFlagsDefault);
 
     // build the set of unique frequencies to scan for.
-    for (const auto& frequency : network.frequencies) {
+    for (const auto& frequency : network.frequencies_) {
       unique_frequencies.insert(frequency);
     }
-    if (network.frequencies.empty()) {
+    if (network.frequencies_.empty()) {
       num_networks_no_freqs++;
     }
   }
@@ -282,8 +279,8 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
   req_flags.request_sched_scan_relative_rssi = request_sched_scan_relative_rssi;
   if (!scan_utils_->StartScheduledScan(interface_index_,
                                        GenerateIntervalSetting(pno_settings),
-                                       pno_settings.min2gRssi,
-                                       pno_settings.min5gRssi,
+                                       pno_settings.min_2g_rssi_,
+                                       pno_settings.min_5g_rssi_,
                                        req_flags,
                                        scan_ssids,
                                        match_ssids,
@@ -431,41 +428,41 @@ SchedScanIntervalSetting ScannerImpl::GenerateIntervalSetting(
   bool support_num_scan_plans = scan_capabilities_.max_num_scan_plans >= 2;
   bool support_scan_plan_interval =
       scan_capabilities_.max_scan_plan_interval * 1000 >=
-          pno_settings.intervalMs * kSlowScanIntervalMultiplier;
+          pno_settings.interval_ms_ * PnoSettings::kSlowScanIntervalMultiplier;
   bool support_scan_plan_iterations =
       scan_capabilities_.max_scan_plan_iterations >=
-                  kFastScanIterations;
+                  PnoSettings::kFastScanIterations;
 
   uint32_t fast_scan_interval =
-      static_cast<uint32_t>(pno_settings.intervalMs);
+      static_cast<uint32_t>(pno_settings.interval_ms_);
   if (support_num_scan_plans && support_scan_plan_interval &&
       support_scan_plan_iterations) {
     return SchedScanIntervalSetting{
-        {{fast_scan_interval, kFastScanIterations}},
-        fast_scan_interval * kSlowScanIntervalMultiplier};
+        {{fast_scan_interval, PnoSettings::kFastScanIterations}},
+        fast_scan_interval * PnoSettings::kSlowScanIntervalMultiplier};
   } else {
     // Device doesn't support the provided scan plans.
     // Specify single interval instead.
     // In this case, the driver/firmware is expected to implement back off
-    // logic internally using |pno_settings.intervalMs| as "fast scan"
+    // logic internally using |pno_settings.interval_ms_| as "fast scan"
     // interval.
     return SchedScanIntervalSetting{{}, fast_scan_interval};
   }
 }
 
-void ScannerImpl::LogSsidList(vector<vector<uint8_t>>& ssidlist,
+void ScannerImpl::LogSsidList(vector<vector<uint8_t>>& ssid_list,
                               string prefix) {
-  if (ssidlist.empty()) {
+  if (ssid_list.empty()) {
     return;
   }
-  string ssidlist_string;
-  for (auto& ssid : ssidlist) {
-    ssidlist_string += string(ssid.begin(), ssid.end());
-    if (&ssid != &ssidlist.back()) {
-      ssidlist_string += ", ";
+  string ssid_list_string;
+  for (auto& ssid : ssid_list) {
+    ssid_list_string += string(ssid.begin(), ssid.end());
+    if (&ssid != &ssid_list.back()) {
+      ssid_list_string += ", ";
     }
   }
-  LOG(WARNING) << prefix << ": " << ssidlist_string;
+  LOG(WARNING) << prefix << ": " << ssid_list_string;
 }
 
 }  // namespace wificond
