@@ -16,6 +16,4 @@
 
 package com.android.server.wifi.wificond;
 
-parcelable NativeWifiClient {
-    byte[] macAddress;
-}
+parcelable NativeWifiClient cpp_header "wificond/client/native_wifi_client.h";

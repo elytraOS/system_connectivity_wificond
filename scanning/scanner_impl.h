@@ -22,7 +22,7 @@
 #include <android-base/macros.h>
 #include <binder/Status.h>
 
-#include "com/android/server/wifi/wificond/BnWifiScannerImpl.h"
+#include "android/net/wifi/BnWifiScannerImpl.h"
 #include "wificond/net/netlink_utils.h"
 #include "wificond/scanning/scan_utils.h"
 
@@ -32,11 +32,8 @@ namespace wificond {
 class ClientInterfaceImpl;
 class ScanUtils;
 
-class ScannerImpl : public com::android::server::wifi::wificond::BnWifiScannerImpl {
+class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
  public:
-  static const uint32_t kFastScanIterations;
-  static const uint32_t kSlowScanIntervalMultiplier;
-
   ScannerImpl(uint32_t interface_index,
               const ScanCapabilities& scan_capabilities,
               const WiphyFeatures& wiphy_features,
@@ -63,10 +60,10 @@ class ScannerImpl : public com::android::server::wifi::wificond::BnWifiScannerIm
   ::android::binder::Status abortScan() override;
 
   ::android::binder::Status subscribeScanEvents(
-      const ::android::sp<::com::android::server::wifi::wificond::IScanEvent>& handler) override;
+      const ::android::sp<::android::net::wifi::IScanEvent>& handler) override;
   ::android::binder::Status unsubscribeScanEvents() override;
   ::android::binder::Status subscribePnoScanEvents(
-      const ::android::sp<::com::android::server::wifi::wificond::IPnoScanEvent>& handler)
+      const ::android::sp<::android::net::wifi::IPnoScanEvent>& handler)
       override;
   ::android::binder::Status unsubscribePnoScanEvents() override;
   void Invalidate();
@@ -105,8 +102,8 @@ class ScannerImpl : public com::android::server::wifi::wificond::BnWifiScannerIm
 
   ClientInterfaceImpl* client_interface_;
   ScanUtils* const scan_utils_;
-  ::android::sp<::com::android::server::wifi::wificond::IPnoScanEvent> pno_scan_event_handler_;
-  ::android::sp<::com::android::server::wifi::wificond::IScanEvent> scan_event_handler_;
+  ::android::sp<::android::net::wifi::IPnoScanEvent> pno_scan_event_handler_;
+  ::android::sp<::android::net::wifi::IScanEvent> scan_event_handler_;
 
   DISALLOW_COPY_AND_ASSIGN(ScannerImpl);
 };

@@ -20,13 +20,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "com/android/server/wifi/wificond/IApInterfaceEventCallback.h"
+#include "android/net/wifi/IApInterfaceEventCallback.h"
 
 namespace android {
 namespace wificond {
 
 class MockApInterfaceEventCallback
-    : public com::android::server::wifi::wificond::IApInterfaceEventCallback {
+    : public net::wifi::IApInterfaceEventCallback {
  public:
   MockApInterfaceEventCallback() = default;
   ~MockApInterfaceEventCallback() = default;

@@ -22,9 +22,9 @@
 
 #include <gtest/gtest.h>
 
-#include "com/android/server/wifi/wificond/IWifiScannerImpl.h"
-#include "com/android/server/wifi/wificond/NativeScanResult.h"
+#include "android/net/wifi/IWifiScannerImpl.h"
 #include "wificond/net/kernel-header-latest/nl80211.h"
+#include "wificond/scanning/scan_result.h"
 #include "wificond/scanning/scan_utils.h"
 #include "wificond/tests/mock_netlink_manager.h"
 
@@ -40,7 +40,7 @@ using testing::Not;
 using testing::Return;
 using testing::_;
 
-using com::android::server::wifi::wificond::IWifiScannerImpl;
+using android::net::wifi::IWifiScannerImpl;
 using com::android::server::wifi::wificond::NativeScanResult;
 
 namespace android {

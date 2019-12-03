@@ -141,7 +141,7 @@ TEST_F(ApInterfaceImplTest, CanGetConnectedClientsSetsValues) {
   std::vector<NativeWifiClient> associated_stations =
     ap_interface_->GetConnectedClients();
   NativeWifiClient station = associated_stations[0];
-  EXPECT_EQ(expected_mac_address, station.macAddress);
+  EXPECT_EQ(expected_mac_address, station.mac_address_);
 }
 
 TEST_F(ApInterfaceImplTest, CallbackIsCalledOnConnectedClientsChanged) {
