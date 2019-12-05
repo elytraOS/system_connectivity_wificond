@@ -59,6 +59,10 @@ interface IWificond {
     // Returrns null on failure.
     @nullable int[] getAvailableDFSChannels();
 
+    // Returns an array of available frequencies for 6GHz channels.
+    // Returrns null on failure.
+    @nullable int[] getAvailable6gChannels();
+
     // Register a callback to receive interface status updates.
     //
     // Multiple callbacks can be registered simultaneously.
