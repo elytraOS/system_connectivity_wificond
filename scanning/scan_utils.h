@@ -135,6 +135,7 @@ class ScanUtils {
       const SchedScanIntervalSetting& interval_setting,
       int32_t rssi_threshold_2g,
       int32_t rssi_threshold_5g,
+      int32_t rssi_threshold_6g,
       const SchedScanReqFlags& req_flags,
       const std::vector<std::vector<uint8_t>>& scan_ssids,
       const std::vector<std::vector<uint8_t>>& match_ssids,

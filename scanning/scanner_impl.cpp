@@ -281,6 +281,7 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
                                        GenerateIntervalSetting(pno_settings),
                                        pno_settings.min_2g_rssi_,
                                        pno_settings.min_5g_rssi_,
+                                       pno_settings.min_6g_rssi_,
                                        req_flags,
                                        scan_ssids,
                                        match_ssids,
