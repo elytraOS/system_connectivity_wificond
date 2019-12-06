@@ -50,6 +50,8 @@ cc_binary {
         "libutils",
         "libwifi-system-iface",
         "android.system.wifi.keystore@1.0",
+        "libvndksupport",
+        "libprocessgroup",
     ],
     static_libs: [
         "libwificond", // Wificond daemon
