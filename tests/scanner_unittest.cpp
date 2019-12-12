@@ -19,7 +19,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <wifi_system_test/mock_interface_tool.h>
-#include "com/android/server/wifi/wificond/IWifiScannerImpl.h"
+#include "android/net/wifi/IWifiScannerImpl.h"
 #include "wificond/scanning/scanner_impl.h"
 #include "wificond/tests/mock_client_interface_impl.h"
 #include "wificond/tests/mock_netlink_manager.h"
@@ -27,12 +27,12 @@
 #include "wificond/tests/mock_scan_utils.h"
 
 using ::android::binder::Status;
+using ::android::net::wifi::IWifiScannerImpl;
 using ::android::wifi_system::MockInterfaceTool;
-using ::com::android::server::wifi::wificond::IWifiScannerImpl;
-using ::com::android::server::wifi::wificond::NativeScanResult;
+using ::com::android::server::wifi::wificond::SingleScanSettings;
 using ::com::android::server::wifi::wificond::PnoNetwork;
 using ::com::android::server::wifi::wificond::PnoSettings;
-using ::com::android::server::wifi::wificond::SingleScanSettings;
+using ::com::android::server::wifi::wificond::NativeScanResult;
 using ::testing::Eq;
 using ::testing::Invoke;
 using ::testing::NiceMock;
@@ -136,7 +136,7 @@ TEST_F(ScannerTest, TestSingleScanForLowSpanScan) {
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
   SingleScanSettings settings;
-  settings.scanType = IWifiScannerImpl::SCAN_TYPE_LOW_SPAN;
+  settings.scan_type_ = IWifiScannerImpl::SCAN_TYPE_LOW_SPAN;
   bool success = false;
   EXPECT_TRUE(scanner_impl.scan(settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -151,7 +151,7 @@ TEST_F(ScannerTest, TestSingleScanForLowPowerScan) {
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
   SingleScanSettings settings;
-  settings.scanType = IWifiScannerImpl::SCAN_TYPE_LOW_POWER;
+  settings.scan_type_ = IWifiScannerImpl::SCAN_TYPE_LOW_POWER;
   bool success = false;
   EXPECT_TRUE(scanner_impl.scan(settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -166,7 +166,7 @@ TEST_F(ScannerTest, TestSingleScanForHighAccuracyScan) {
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
   SingleScanSettings settings;
-  settings.scanType = IWifiScannerImpl::SCAN_TYPE_HIGH_ACCURACY;
+  settings.scan_type_ = IWifiScannerImpl::SCAN_TYPE_HIGH_ACCURACY;
   bool success = false;
   EXPECT_TRUE(scanner_impl.scan(settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -180,7 +180,7 @@ TEST_F(ScannerTest, TestSingleScanForLowSpanScanWithNoWiphySupport) {
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
   SingleScanSettings settings;
-  settings.scanType = IWifiScannerImpl::SCAN_TYPE_LOW_SPAN;
+  settings.scan_type_ = IWifiScannerImpl::SCAN_TYPE_LOW_SPAN;
   bool success = false;
   EXPECT_TRUE(scanner_impl.scan(settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -194,7 +194,7 @@ TEST_F(ScannerTest, TestSingleScanForLowPowerScanWithNoWiphySupport) {
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
   SingleScanSettings settings;
-  settings.scanType = IWifiScannerImpl::SCAN_TYPE_LOW_POWER;
+  settings.scan_type_ = IWifiScannerImpl::SCAN_TYPE_LOW_POWER;
   bool success = false;
   EXPECT_TRUE(scanner_impl.scan(settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -208,7 +208,7 @@ TEST_F(ScannerTest, TestSingleScanForHighAccuracyScanWithNoWiphySupport) {
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
   SingleScanSettings settings;
-  settings.scanType = IWifiScannerImpl::SCAN_TYPE_HIGH_ACCURACY;
+  settings.scan_type_ = IWifiScannerImpl::SCAN_TYPE_HIGH_ACCURACY;
   bool success = false;
   EXPECT_TRUE(scanner_impl.scan(settings, &success).isOk());
   EXPECT_TRUE(success);
@@ -340,8 +340,8 @@ TEST_F(ScannerTest, TestGenerateScanPlansIfDeviceSupports) {
       0 /* max_match_sets */,
       // Parameters above are not related to this test.
       2 /* 1 plan for finite repeated scan and 1 plan for ininfite scan loop */,
-      kFakeScanIntervalMs * ScannerImpl::kSlowScanIntervalMultiplier / 1000,
-      ScannerImpl::kFastScanIterations);
+      kFakeScanIntervalMs * PnoSettings::kSlowScanIntervalMultiplier / 1000,
+      PnoSettings::kFastScanIterations);
   ScannerImpl scanner(
       kFakeInterfaceIndex,
       scan_capabilities_scan_plan_supported, wiphy_features_,
@@ -349,7 +349,7 @@ TEST_F(ScannerTest, TestGenerateScanPlansIfDeviceSupports) {
       &scan_utils_);
 
   PnoSettings pno_settings;
-  pno_settings.intervalMs = kFakeScanIntervalMs;
+  pno_settings.interval_ms_ = kFakeScanIntervalMs;
 
   SchedScanIntervalSetting interval_setting;
   EXPECT_CALL(
@@ -363,7 +363,7 @@ TEST_F(ScannerTest, TestGenerateScanPlansIfDeviceSupports) {
   EXPECT_TRUE(scanner.startPnoScan(pno_settings, &success_ignored).isOk());
   /* 1 plan for finite repeated scan */
   EXPECT_EQ(1U, interval_setting.plans.size());
-  EXPECT_EQ(kFakeScanIntervalMs * ScannerImpl::kSlowScanIntervalMultiplier,
+  EXPECT_EQ(kFakeScanIntervalMs * PnoSettings::kSlowScanIntervalMultiplier,
             interval_setting.final_interval_ms);
 }
 
@@ -382,7 +382,7 @@ TEST_F(ScannerTest, TestGenerateSingleIntervalIfDeviceDoesNotSupportScanPlan) {
       &client_interface_impl_,
       &scan_utils_);
   PnoSettings pno_settings;
-  pno_settings.intervalMs = kFakeScanIntervalMs;
+  pno_settings.interval_ms_ = kFakeScanIntervalMs;
 
   SchedScanIntervalSetting interval_setting;
   EXPECT_CALL(
@@ -420,17 +420,17 @@ TEST_F(ScannerTest, TestStartPnoScanWithNonEmptyFrequencyList) {
       1 /* max_num_sched_scan_ssids */,
       1 /* max_match_sets */,
       0,
-      kFakeScanIntervalMs * ScannerImpl::kSlowScanIntervalMultiplier / 1000,
-      ScannerImpl::kFastScanIterations);
+      kFakeScanIntervalMs * PnoSettings::kSlowScanIntervalMultiplier / 1000,
+      PnoSettings::kFastScanIterations);
   ScannerImpl scanner_impl(kFakeInterfaceIndex, scan_capabilities_test_frequencies,
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
 
   PnoSettings pno_settings;
   PnoNetwork network;
-  network.isHidden = false;
-  network.frequencies.push_back(2412);
-  pno_settings.pnoNetworks.push_back(network);
+  network.is_hidden_ = false;
+  network.frequencies_.push_back(2412);
+  pno_settings.pno_networks_.push_back(network);
 
   std::vector<uint32_t> expected_freqs;
   expected_freqs.push_back(2412);
@@ -451,8 +451,8 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListNoDuplicates) {
       1 /* max_num_sched_scan_ssids */,
       2 /* max_match_sets */,
       0,
-      kFakeScanIntervalMs * ScannerImpl::kSlowScanIntervalMultiplier / 1000,
-      ScannerImpl::kFastScanIterations);
+      kFakeScanIntervalMs * PnoSettings::kSlowScanIntervalMultiplier / 1000,
+      PnoSettings::kFastScanIterations);
   ScannerImpl scanner_impl(kFakeInterfaceIndex, scan_capabilities_test_frequencies,
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
@@ -460,14 +460,14 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListNoDuplicates) {
   PnoSettings pno_settings;
   PnoNetwork network;
   PnoNetwork network2;
-  network.isHidden = false;
-  network.frequencies.push_back(2412);
-  network.frequencies.push_back(2437);
-  network2.isHidden = false;
-  network2.frequencies.push_back(2437);
-  network2.frequencies.push_back(2462);
-  pno_settings.pnoNetworks.push_back(network);
-  pno_settings.pnoNetworks.push_back(network2);
+  network.is_hidden_ = false;
+  network.frequencies_.push_back(2412);
+  network.frequencies_.push_back(2437);
+  network2.is_hidden_ = false;
+  network2.frequencies_.push_back(2437);
+  network2.frequencies_.push_back(2462);
+  pno_settings.pno_networks_.push_back(network);
+  pno_settings.pno_networks_.push_back(network2);
 
   std::vector<uint32_t> expected_freqs;
   expected_freqs.push_back(2412);
@@ -490,8 +490,8 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListFallbackMechanism) {
       1 /* max_num_sched_scan_ssids */,
       2 /* max_match_sets */,
       0,
-      kFakeScanIntervalMs * ScannerImpl::kSlowScanIntervalMultiplier / 1000,
-      ScannerImpl::kFastScanIterations);
+      kFakeScanIntervalMs * PnoSettings::kSlowScanIntervalMultiplier / 1000,
+      PnoSettings::kFastScanIterations);
   ScannerImpl scanner_impl(kFakeInterfaceIndex, scan_capabilities_test_frequencies,
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
@@ -499,11 +499,11 @@ TEST_F(ScannerTest, TestStartPnoScanWithFrequencyListFallbackMechanism) {
   PnoSettings pno_settings;
   PnoNetwork network;
   PnoNetwork network2;
-  network.isHidden = false;
-  network.frequencies.push_back(5640);
-  network2.isHidden = false;
-  pno_settings.pnoNetworks.push_back(network);
-  pno_settings.pnoNetworks.push_back(network2);
+  network.is_hidden_ = false;
+  network.frequencies_.push_back(5640);
+  network2.is_hidden_ = false;
+  pno_settings.pno_networks_.push_back(network);
+  pno_settings.pno_networks_.push_back(network2);
 
   std::set<int32_t> default_frequencies = {2412, 2417, 2422, 2427, 2432, 2437, 2447, 2452, 2457,
       2462, 5180, 5200, 5220, 5240, 5745, 5765, 5785, 5805};
@@ -526,8 +526,8 @@ TEST_F(ScannerTest, TestStartPnoScanEmptyList) {
       1 /* max_num_sched_scan_ssids */,
       2 /* max_match_sets */,
       0,
-      kFakeScanIntervalMs * ScannerImpl::kSlowScanIntervalMultiplier / 1000,
-      ScannerImpl::kFastScanIterations);
+      kFakeScanIntervalMs * PnoSettings::kSlowScanIntervalMultiplier / 1000,
+      PnoSettings::kFastScanIterations);
   ScannerImpl scanner_impl(kFakeInterfaceIndex, scan_capabilities_test_frequencies,
                            wiphy_features_, &client_interface_impl_,
                            &scan_utils_);
@@ -535,10 +535,10 @@ TEST_F(ScannerTest, TestStartPnoScanEmptyList) {
   PnoSettings pno_settings;
   PnoNetwork network;
   PnoNetwork network2;
-  network.isHidden = false;
-  network2.isHidden = false;
-  pno_settings.pnoNetworks.push_back(network);
-  pno_settings.pnoNetworks.push_back(network2);
+  network.is_hidden_ = false;
+  network2.is_hidden_ = false;
+  pno_settings.pno_networks_.push_back(network);
+  pno_settings.pno_networks_.push_back(network2);
   EXPECT_CALL(
       scan_utils_,
       StartScheduledScan(_, _, _, _, _, _, _, Eq(vector<uint32_t>{}), _)).

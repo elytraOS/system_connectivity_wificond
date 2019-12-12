@@ -20,13 +20,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "com/android/server/wifi/wificond/ISendMgmtFrameEvent.h"
+#include "android/net/wifi/ISendMgmtFrameEvent.h"
 
 namespace android {
 namespace wificond {
 
 class MockISendMgmtFrameEvent
-    : public ::com::android::server::wifi::wificond::ISendMgmtFrameEvent {
+    : public ::android::net::wifi::ISendMgmtFrameEvent {
  public:
   virtual ~MockISendMgmtFrameEvent() override = default;
 
