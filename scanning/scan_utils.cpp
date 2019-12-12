@@ -405,6 +405,7 @@ bool ScanUtils::StartScheduledScan(
     const SchedScanIntervalSetting& interval_setting,
     int32_t rssi_threshold_2g,
     int32_t rssi_threshold_5g,
+    int32_t rssi_threshold_6g,
     const SchedScanReqFlags& req_flags,
     const std::vector<std::vector<uint8_t>>& scan_ssids,
     const std::vector<std::vector<uint8_t>>& match_ssids,
@@ -455,6 +456,9 @@ bool ScanUtils::StartScheduledScan(
               reinterpret_cast<uint8_t*>(&rssi_adjust) + sizeof(rssi_adjust)));
       start_sched_scan.AddAttribute(rssi_adjust_attr);
   }
+
+  //TODO: No adjustment is possible now for 6GHz due to lack of definition in
+  //nl80211.h for NL80211_BAND_6GHZ attribute
 
   // Append all attributes to the NL80211_CMD_START_SCHED_SCAN packet.
   start_sched_scan.AddAttribute(

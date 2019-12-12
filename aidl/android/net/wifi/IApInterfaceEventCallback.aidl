@@ -33,7 +33,7 @@ oneway interface IApInterfaceEventCallback {
   // Signals that the stations associated to this soft Ap have changed.
   //
   // @param clients The associated stations after change
-  void onConnectedClientsChanged(in NativeWifiClient[] clients);
+  void onConnectedClientsChanged(in NativeWifiClient client, in boolean isConnected);
 
   // Signals a channel switch event for this soft Ap.
   //
