@@ -108,6 +108,7 @@ class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
   ::com::android::server::wifi::wificond::PnoSettings pno_settings_;
 
   uint32_t nodev_counter_;
+  uint32_t enetdown_counter_;
   const uint32_t interface_index_;
 
   // Scanning relevant capability information for this wiphy/interface.
