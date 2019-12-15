@@ -27,9 +27,8 @@
 
 #include "wificond/scanning/radio_chain_info.h"
 
-namespace com {
 namespace android {
-namespace server {
+namespace net {
 namespace wifi {
 namespace wificond {
 
@@ -89,8 +88,7 @@ class NativeScanResult : public ::android::Parcelable {
 
 }  // namespace wificond
 }  // namespace wifi
-}  // namespace server
+}  // namespace net
 }  // namespace android
-}  // namespace com
 
 #endif  // WIFICOND_SCANNING_SCAN_RESULT_H_

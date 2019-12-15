@@ -24,9 +24,8 @@
 using android::net::wifi::IWifiScannerImpl;
 using android::status_t;
 
-namespace com {
 namespace android {
-namespace server {
+namespace net {
 namespace wifi {
 namespace wificond {
 bool SingleScanSettings::isValidScanType() const {
@@ -111,6 +110,5 @@ status_t SingleScanSettings::readFromParcel(const ::android::Parcel* parcel) {
 
 }  // namespace wificond
 }  // namespace wifi
-}  // namespace server
+}  // namespace net
 }  // namespace android
-}  // namespace com

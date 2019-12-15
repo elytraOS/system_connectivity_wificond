@@ -24,9 +24,8 @@
 
 #include "wificond/net/netlink_manager.h"
 
-namespace com {
 namespace android {
-namespace server {
+namespace net {
 namespace wifi {
 namespace wificond {
 
@@ -35,9 +34,8 @@ class RadioChainInfo;
 
 }  // namespace wificond
 }  // namespace wifi
-}  // namespace server
+}  // namespace net
 }  // namespace android
-}  // namespace com
 
 namespace android {
 namespace wificond {
@@ -75,7 +73,7 @@ class ScanUtils {
   // Returns true on success.
   virtual bool GetScanResult(
       uint32_t interface_index,
-      std::vector<::com::android::server::wifi::wificond::NativeScanResult>* out_scan_results);
+      std::vector<android::net::wifi::wificond::NativeScanResult>* out_scan_results);
 
   // Send scan request to kernel for interface with index |interface_index|.
   // - |request_random_mac| If true, request device/driver to use a random MAC
@@ -190,14 +188,14 @@ class ScanUtils {
                        uint64_t* last_seen_since_boot_microseconds);
   bool ParseRadioChainInfos(
       const NL80211NestedAttr& bss,
-      std::vector<::com::android::server::wifi::wificond::RadioChainInfo>
+      std::vector<android::net::wifi::wificond::RadioChainInfo>
         *radio_chain_infos);
   bool GetSSIDFromInfoElement(const std::vector<uint8_t>& ie,
                               std::vector<uint8_t>* ssid);
   // Converts a NL80211_CMD_NEW_SCAN_RESULTS packet to a ScanResult object.
   bool ParseScanResult(
       std::unique_ptr<const NL80211Packet> packet,
-      ::com::android::server::wifi::wificond::NativeScanResult* scan_result);
+      android::net::wifi::wificond::NativeScanResult* scan_result);
 
   NetlinkManager* netlink_manager_;
 

@@ -27,9 +27,8 @@ using android::status_t;
 using android::OK;
 using std::string;
 
-namespace com {
 namespace android {
-namespace server {
+namespace net {
 namespace wifi {
 namespace wificond {
 
@@ -137,6 +136,5 @@ void NativeScanResult::DebugLog() {
 
 }  // namespace wificond
 }  // namespace wifi
-}  // namespace server
+}  // namespace net
 }  // namespace android
-}  // namespace com

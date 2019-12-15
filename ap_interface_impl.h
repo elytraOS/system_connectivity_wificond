@@ -31,7 +31,7 @@
 #include "android/net/wifi/IApInterface.h"
 
 using android::net::wifi::IApInterface;
-using com::android::server::wifi::wificond::NativeWifiClient;
+using android::net::wifi::wificond::NativeWifiClient;
 
 namespace android {
 namespace wificond {

@@ -24,9 +24,8 @@
 
 #include "wificond/scanning/pno_network.h"
 
-namespace com {
 namespace android {
-namespace server {
+namespace net {
 namespace wifi {
 namespace wificond {
 
@@ -58,8 +57,7 @@ class PnoSettings : public ::android::Parcelable {
 
 }  // namespace wificond
 }  // namespace wifi
-}  // namespace server
+}  // namespace net
 }  // namespace android
-}  // namespace com
 
 #endif  // WIFICOND_SCANNING_PNO_SETTINGS_H_

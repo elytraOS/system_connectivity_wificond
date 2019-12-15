@@ -26,11 +26,11 @@
 #include "wificond/scanning/single_scan_settings.h"
 
 using ::android::net::wifi::IWifiScannerImpl;
-using ::com::android::server::wifi::wificond::ChannelSettings;
-using ::com::android::server::wifi::wificond::HiddenNetwork;
-using ::com::android::server::wifi::wificond::PnoNetwork;
-using ::com::android::server::wifi::wificond::PnoSettings;
-using ::com::android::server::wifi::wificond::SingleScanSettings;
+using ::android::net::wifi::wificond::ChannelSettings;
+using ::android::net::wifi::wificond::HiddenNetwork;
+using ::android::net::wifi::wificond::PnoNetwork;
+using ::android::net::wifi::wificond::PnoSettings;
+using ::android::net::wifi::wificond::SingleScanSettings;
 using std::vector;
 
 namespace android {

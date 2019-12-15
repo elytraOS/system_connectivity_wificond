@@ -16,7 +16,10 @@
 
 package android.net.wifi;
 
-// A callback for receiving pno scanning events.
+/**
+ * A callback for receiving pno scanning events.
+ * @hide
+ */
 interface IPnoScanEvent {
   oneway void OnPnoNetworkFound();
   oneway void OnPnoScanFailed();

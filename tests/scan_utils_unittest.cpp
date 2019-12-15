@@ -41,7 +41,7 @@ using testing::Return;
 using testing::_;
 
 using android::net::wifi::IWifiScannerImpl;
-using com::android::server::wifi::wificond::NativeScanResult;
+using android::net::wifi::wificond::NativeScanResult;
 
 namespace android {
 namespace wificond {

@@ -16,9 +16,12 @@
 
 package android.net.wifi;
 
-import com.android.server.wifi.wificond.NativeWifiClient;
+import android.net.wifi.wificond.NativeWifiClient;
 
-// A callback for receiving events related to soft AP.
+/**
+ * A callback for receiving events related to soft AP.
+ * @hide
+ */
 oneway interface IApInterfaceEventCallback {
 
   // Channel bandwidth type. Used in |onSoftApChannelSwitched|

@@ -20,8 +20,11 @@ import android.net.wifi.IApInterface;
 import android.net.wifi.IClientInterface;
 import android.net.wifi.IInterfaceEventCallback;
 
-// Service interface that exposes primitives for controlling the WiFi
-// subsystems of a device.
+/**
+ * Service interface that exposes primitives for controlling the WiFi
+ * subsystems of a device.
+ * @hide
+ */
 interface IWificond {
 
     // Create a network interface suitable for use as an AP.

@@ -25,9 +25,8 @@
 #include "wificond/scanning/channel_settings.h"
 #include "wificond/scanning/hidden_network.h"
 
-namespace com {
 namespace android {
-namespace server {
+namespace net {
 namespace wifi {
 namespace wificond {
 
@@ -52,8 +51,7 @@ class SingleScanSettings : public ::android::Parcelable {
 
 }  // namespace wificond
 }  // namespace wifi
-}  // namespace server
+}  // namespace net
 }  // namespace android
-}  // namespace com
 
 #endif  // WIFICOND_SCANNING_SINGLE_SCAN_SETTINGS_H_

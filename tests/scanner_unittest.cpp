@@ -28,11 +28,11 @@
 
 using ::android::binder::Status;
 using ::android::net::wifi::IWifiScannerImpl;
+using ::android::net::wifi::wificond::SingleScanSettings;
+using ::android::net::wifi::wificond::PnoNetwork;
+using ::android::net::wifi::wificond::PnoSettings;
+using ::android::net::wifi::wificond::NativeScanResult;
 using ::android::wifi_system::MockInterfaceTool;
-using ::com::android::server::wifi::wificond::SingleScanSettings;
-using ::com::android::server::wifi::wificond::PnoNetwork;
-using ::com::android::server::wifi::wificond::PnoSettings;
-using ::com::android::server::wifi::wificond::NativeScanResult;
 using ::testing::Eq;
 using ::testing::Invoke;
 using ::testing::NiceMock;

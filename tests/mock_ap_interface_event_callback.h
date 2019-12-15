@@ -33,7 +33,7 @@ class MockApInterfaceEventCallback
 
   MOCK_METHOD0(onAsBinder, IBinder*());
   MOCK_METHOD2(onConnectedClientsChanged, ::android::binder::Status(
-    const ::com::android::server::wifi::wificond::NativeWifiClient &, bool isConnected));
+    const android::net::wifi::wificond::NativeWifiClient &, bool isConnected));
   MOCK_METHOD2(onSoftApChannelSwitched, ::android::binder::Status(int, int));
 };
 

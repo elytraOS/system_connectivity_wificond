@@ -19,7 +19,10 @@ package android.net.wifi;
 import android.net.wifi.IApInterface;
 import android.net.wifi.IClientInterface;
 
-// A callback for receiving events related to this chip.
+/**
+ * A callback for receiving events related to this chip.
+ * @hide
+ */
 interface IInterfaceEventCallback {
 
   // Signals that the provided interface is ready for future commands.

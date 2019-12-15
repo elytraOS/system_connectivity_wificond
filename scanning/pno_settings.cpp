@@ -22,9 +22,8 @@
 
 using android::status_t;
 
-namespace com {
 namespace android {
-namespace server {
+namespace net {
 namespace wifi {
 namespace wificond {
 
@@ -71,6 +70,5 @@ status_t PnoSettings::readFromParcel(const ::android::Parcel* parcel) {
 
 }  // namespace wificond
 }  // namespace wifi
-}  // namespace server
+}  // namespace net
 }  // namespace android
-}  // namespace com

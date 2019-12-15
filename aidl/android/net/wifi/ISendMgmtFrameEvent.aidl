@@ -16,7 +16,10 @@
 
 package android.net.wifi;
 
-// A callback to notify the results of sending a management frame.
+/**
+ * A callback to notify the results of sending a management frame.
+ * @hide
+ */
 interface ISendMgmtFrameEvent {
   // Error codes for OnFailure():
 

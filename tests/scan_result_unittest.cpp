@@ -23,8 +23,8 @@
 
 #include "wificond/scanning/scan_result.h"
 
-using ::com::android::server::wifi::wificond::NativeScanResult;
-using ::com::android::server::wifi::wificond::RadioChainInfo;
+using ::android::net::wifi::wificond::NativeScanResult;
+using ::android::net::wifi::wificond::RadioChainInfo;
 using std::array;
 using std::vector;
 

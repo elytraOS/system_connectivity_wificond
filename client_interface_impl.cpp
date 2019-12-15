@@ -31,7 +31,7 @@
 
 using android::net::wifi::IClientInterface;
 using android::net::wifi::ISendMgmtFrameEvent;
-using com::android::server::wifi::wificond::NativeScanResult;
+using android::net::wifi::wificond::NativeScanResult;
 using android::sp;
 using android::wifi_system::InterfaceTool;
 

@@ -25,7 +25,7 @@
 #include "android/net/wifi/IApInterfaceEventCallback.h"
 
 using android::net::wifi::IApInterfaceEventCallback;
-using com::android::server::wifi::wificond::NativeWifiClient;
+using android::net::wifi::wificond::NativeWifiClient;
 
 namespace android {
 namespace wificond {
