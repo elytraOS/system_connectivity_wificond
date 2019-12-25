@@ -19,7 +19,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <wifi_system_test/mock_interface_tool.h>
-#include "android/net/wifi/IWifiScannerImpl.h"
+#include "android/net/wifi/wificond/IWifiScannerImpl.h"
 #include "wificond/scanning/scanner_impl.h"
 #include "wificond/tests/mock_client_interface_impl.h"
 #include "wificond/tests/mock_netlink_manager.h"
@@ -27,7 +27,7 @@
 #include "wificond/tests/mock_scan_utils.h"
 
 using ::android::binder::Status;
-using ::android::net::wifi::IWifiScannerImpl;
+using ::android::net::wifi::wificond::IWifiScannerImpl;
 using ::android::net::wifi::wificond::SingleScanSettings;
 using ::android::net::wifi::wificond::PnoNetwork;
 using ::android::net::wifi::wificond::PnoSettings;

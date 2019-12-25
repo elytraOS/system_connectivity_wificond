@@ -22,7 +22,7 @@
 
 #include <gtest/gtest.h>
 
-#include "android/net/wifi/IWifiScannerImpl.h"
+#include "android/net/wifi/wificond/IWifiScannerImpl.h"
 #include "wificond/net/kernel-header-latest/nl80211.h"
 #include "wificond/scanning/scan_result.h"
 #include "wificond/scanning/scan_utils.h"
@@ -40,7 +40,7 @@ using testing::Not;
 using testing::Return;
 using testing::_;
 
-using android::net::wifi::IWifiScannerImpl;
+using android::net::wifi::wificond::IWifiScannerImpl;
 using android::net::wifi::wificond::NativeScanResult;
 
 namespace android {

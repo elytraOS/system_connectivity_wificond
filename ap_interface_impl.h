@@ -28,9 +28,9 @@
 
 #include "wificond/net/netlink_manager.h"
 
-#include "android/net/wifi/IApInterface.h"
+#include "android/net/wifi/wificond/IApInterface.h"
 
-using android::net::wifi::IApInterface;
+using android::net::wifi::wificond::IApInterface;
 using android::net::wifi::wificond::NativeWifiClient;
 
 namespace android {

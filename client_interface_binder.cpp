@@ -28,8 +28,8 @@
 #include "wificond/client_interface_impl.h"
 
 using android::binder::Status;
-using android::net::wifi::ISendMgmtFrameEvent;
-using android::net::wifi::IWifiScannerImpl;
+using android::net::wifi::wificond::ISendMgmtFrameEvent;
+using android::net::wifi::wificond::IWifiScannerImpl;
 using std::vector;
 
 namespace android {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.net.wifi;
+package android.net.wifi.wificond;
 
 /**
  * A callback to notify the results of sending a management frame.

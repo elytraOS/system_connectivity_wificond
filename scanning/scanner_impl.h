@@ -22,7 +22,7 @@
 #include <android-base/macros.h>
 #include <binder/Status.h>
 
-#include "android/net/wifi/BnWifiScannerImpl.h"
+#include "android/net/wifi/wificond/BnWifiScannerImpl.h"
 #include "wificond/net/netlink_utils.h"
 #include "wificond/scanning/scan_utils.h"
 
@@ -32,7 +32,7 @@ namespace wificond {
 class ClientInterfaceImpl;
 class ScanUtils;
 
-class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
+class ScannerImpl : public android::net::wifi::wificond::BnWifiScannerImpl {
  public:
   ScannerImpl(uint32_t interface_index,
               const ScanCapabilities& scan_capabilities,
@@ -60,10 +60,10 @@ class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
   ::android::binder::Status abortScan() override;
 
   ::android::binder::Status subscribeScanEvents(
-      const ::android::sp<::android::net::wifi::IScanEvent>& handler) override;
+      const ::android::sp<::android::net::wifi::wificond::IScanEvent>& handler) override;
   ::android::binder::Status unsubscribeScanEvents() override;
   ::android::binder::Status subscribePnoScanEvents(
-      const ::android::sp<::android::net::wifi::IPnoScanEvent>& handler)
+      const ::android::sp<::android::net::wifi::wificond::IPnoScanEvent>& handler)
       override;
   ::android::binder::Status unsubscribePnoScanEvents() override;
   void Invalidate();
@@ -102,8 +102,8 @@ class ScannerImpl : public android::net::wifi::BnWifiScannerImpl {
 
   ClientInterfaceImpl* client_interface_;
   ScanUtils* const scan_utils_;
-  ::android::sp<::android::net::wifi::IPnoScanEvent> pno_scan_event_handler_;
-  ::android::sp<::android::net::wifi::IScanEvent> scan_event_handler_;
+  ::android::sp<::android::net::wifi::wificond::IPnoScanEvent> pno_scan_event_handler_;
+  ::android::sp<::android::net::wifi::wificond::IScanEvent> scan_event_handler_;
 
   DISALLOW_COPY_AND_ASSIGN(ScannerImpl);
 };

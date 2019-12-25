@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package android.net.wifi;
+package android.net.wifi.wificond;
 
-import android.net.wifi.IApInterfaceEventCallback;
+import android.net.wifi.wificond.IApInterfaceEventCallback;
 import android.net.wifi.wificond.NativeWifiClient;
 
 /**

@@ -26,8 +26,8 @@
 #include <utils/StrongPointer.h>
 #include <wifi_system/interface_tool.h>
 
-#include "android/net/wifi/IClientInterface.h"
-#include "android/net/wifi/ISendMgmtFrameEvent.h"
+#include "android/net/wifi/wificond/IClientInterface.h"
+#include "android/net/wifi/wificond/ISendMgmtFrameEvent.h"
 #include "wificond/net/mlme_event_handler.h"
 #include "wificond/net/netlink_utils.h"
 #include "wificond/scanning/scanner_impl.h"
@@ -72,7 +72,7 @@ class ClientInterfaceImpl {
   virtual ~ClientInterfaceImpl();
 
   // Get a pointer to the binder representing this ClientInterfaceImpl.
-  android::sp<android::net::wifi::IClientInterface> GetBinder() const;
+  android::sp<android::net::wifi::wificond::IClientInterface> GetBinder() const;
 
   bool GetPacketCounters(std::vector<int32_t>* out_packet_counters);
   bool SignalPoll(std::vector<int32_t>* out_signal_poll_results);
@@ -83,7 +83,7 @@ class ClientInterfaceImpl {
   void Dump(std::stringstream* ss) const;
   void SendMgmtFrame(
       const std::vector<uint8_t>& frame,
-      const sp<::android::net::wifi::ISendMgmtFrameEvent>& callback,
+      const sp<::android::net::wifi::wificond::ISendMgmtFrameEvent>& callback,
       int32_t mcs);
 
  private:

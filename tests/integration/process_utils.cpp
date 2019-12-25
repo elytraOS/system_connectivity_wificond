@@ -32,7 +32,7 @@
 using android::String16;
 using android::base::StringPrintf;
 using android::base::Trim;
-using android::net::wifi::IWificond;
+using android::net::wifi::wificond::IWificond;
 using android::sp;
 using android::wificond::ipc_constants::kServiceName;
 

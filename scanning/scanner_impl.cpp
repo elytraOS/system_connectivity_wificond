@@ -26,10 +26,10 @@
 #include "wificond/scanning/scan_utils.h"
 
 using android::binder::Status;
-using android::net::wifi::IPnoScanEvent;
-using android::net::wifi::IScanEvent;
-using android::net::wifi::IWifiScannerImpl;
 using android::sp;
+using android::net::wifi::wificond::IPnoScanEvent;
+using android::net::wifi::wificond::IScanEvent;
+using android::net::wifi::wificond::IWifiScannerImpl;
 using android::net::wifi::wificond::NativeScanResult;
 using android::net::wifi::wificond::PnoSettings;
 using android::net::wifi::wificond::SingleScanSettings;

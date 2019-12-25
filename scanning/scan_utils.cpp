@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "android/net/wifi/IWifiScannerImpl.h"
+#include "android/net/wifi/wificond/IWifiScannerImpl.h"
 #include "wificond/scanning/scan_utils.h"
 
 #include <array>
@@ -30,7 +30,7 @@
 #include "wificond/net/nl80211_packet.h"
 #include "wificond/scanning/scan_result.h"
 
-using android::net::wifi::IWifiScannerImpl;
+using android::net::wifi::wificond::IWifiScannerImpl;
 using android::net::wifi::wificond::NativeScanResult;
 using android::net::wifi::wificond::RadioChainInfo;
 using std::array;
