@@ -90,60 +90,6 @@ class ApInterfaceImplTest : public ::testing::Test {
 
 }  // namespace
 
-TEST_F(ApInterfaceImplTest, CanGetConnectedClients) {
-  OnStationEventHandler handler;
-  EXPECT_CALL(*netlink_utils_,
-      SubscribeStationEvent(kTestInterfaceIndex, _)).
-          WillOnce(Invoke(bind(CaptureStationEventHandler, &handler, _1, _2)));
-
-  ap_interface_.reset(new ApInterfaceImpl(
-        kTestInterfaceName,
-        kTestInterfaceIndex,
-        netlink_utils_.get(),
-        if_tool_.get()));
-
-  array<uint8_t, ETH_ALEN> fake_mac_address_01 = kFakeMacAddress01;
-  array<uint8_t, ETH_ALEN> fake_mac_address_02 = kFakeMacAddress02;
-  std::vector<NativeWifiClient> associated_stations =
-    ap_interface_->GetConnectedClients();
-  int numberOfStations = static_cast<int>(associated_stations.size());
-  EXPECT_EQ(0, numberOfStations);
-  handler(NEW_STATION, fake_mac_address_01);
-  associated_stations = ap_interface_->GetConnectedClients();
-  numberOfStations = static_cast<int>(associated_stations.size());
-  EXPECT_EQ(1, numberOfStations);
-  handler(NEW_STATION, fake_mac_address_02);
-  associated_stations = ap_interface_->GetConnectedClients();
-  numberOfStations = static_cast<int>(associated_stations.size());
-  EXPECT_EQ(2, numberOfStations);
-  handler(DEL_STATION, fake_mac_address_01);
-  associated_stations = ap_interface_->GetConnectedClients();
-  numberOfStations = static_cast<int>(associated_stations.size());
-  EXPECT_EQ(1, numberOfStations);
-}
-
-TEST_F(ApInterfaceImplTest, CanGetConnectedClientsSetsValues) {
-  OnStationEventHandler handler;
-  EXPECT_CALL(*netlink_utils_,
-      SubscribeStationEvent(kTestInterfaceIndex, _)).
-          WillOnce(Invoke(bind(CaptureStationEventHandler, &handler, _1, _2)));
-
-  ap_interface_.reset(new ApInterfaceImpl(
-        kTestInterfaceName,
-        kTestInterfaceIndex,
-        netlink_utils_.get(),
-        if_tool_.get()));
-
-  array<uint8_t, ETH_ALEN> fake_mac_address_01 = kFakeMacAddress01;
-  vector<uint8_t> expected_mac_address =
-    vector<uint8_t>(fake_mac_address_01.begin(), fake_mac_address_01.end());
-  handler(NEW_STATION, fake_mac_address_01);
-  std::vector<NativeWifiClient> associated_stations =
-    ap_interface_->GetConnectedClients();
-  NativeWifiClient station = associated_stations[0];
-  EXPECT_EQ(expected_mac_address, station.mac_address_);
-}
-
 TEST_F(ApInterfaceImplTest, CallbackIsCalledOnConnectedClientsChanged) {
   OnStationEventHandler handler;
   EXPECT_CALL(*netlink_utils_, SubscribeStationEvent(kTestInterfaceIndex, _))
@@ -160,7 +106,7 @@ TEST_F(ApInterfaceImplTest, CallbackIsCalledOnConnectedClientsChanged) {
 
   array<uint8_t, ETH_ALEN> fake_mac_address_01 = kFakeMacAddress01;
   array<uint8_t, ETH_ALEN> fake_mac_address_02 = kFakeMacAddress02;
-  EXPECT_CALL(*callback, onConnectedClientsChanged(_)).Times(3);
+  EXPECT_CALL(*callback, onConnectedClientsChanged(_,_)).Times(3);
   handler(NEW_STATION, fake_mac_address_01);
   handler(NEW_STATION, fake_mac_address_02);
   handler(DEL_STATION, fake_mac_address_01);
@@ -181,7 +127,7 @@ TEST_F(ApInterfaceImplTest, CallbackIsCalledOnConnectedClientsChangedOnlyOnDiff)
   EXPECT_TRUE(out_success);
 
   array<uint8_t, ETH_ALEN> fake_mac_address_01 = kFakeMacAddress01;
-  EXPECT_CALL(*callback, onConnectedClientsChanged(_)).Times(2);
+  EXPECT_CALL(*callback, onConnectedClientsChanged(_,_)).Times(4);
   handler(NEW_STATION, fake_mac_address_01);
   handler(NEW_STATION, fake_mac_address_01);
   handler(DEL_STATION, fake_mac_address_01);

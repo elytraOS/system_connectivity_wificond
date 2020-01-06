@@ -32,11 +32,9 @@ ApInterfaceBinder::ApInterfaceBinder(ApInterfaceImpl* impl)
 ApInterfaceBinder::~ApInterfaceBinder() {
 }
 
-void ApInterfaceBinder::NotifyConnectedClientsChanged(
-    const std::vector<NativeWifiClient>& clients) {
+void ApInterfaceBinder::NotifyConnectedClientsChanged(const NativeWifiClient client, bool isConnected) {
   if (ap_interface_event_callback_ != nullptr) {
-    LOG(DEBUG) << "NotifyConnectedClientsChanged called returning clients count " << clients.size();
-    ap_interface_event_callback_->onConnectedClientsChanged(clients);
+    ap_interface_event_callback_->onConnectedClientsChanged(client, isConnected);
   }
 }
 
@@ -84,12 +82,6 @@ binder::Status ApInterfaceBinder::registerCallback(
 
 binder::Status ApInterfaceBinder::getInterfaceName(std::string* out_name) {
   *out_name = impl_->GetInterfaceName();
-  return binder::Status::ok();
-}
-
-binder::Status ApInterfaceBinder::getConnectedClients(
-    std::vector<NativeWifiClient>* out_connected_clients) {
-  *out_connected_clients = impl_->GetConnectedClients();
   return binder::Status::ok();
 }
 

@@ -37,7 +37,4 @@ interface IApInterface {
   // IApInterface instance (e.g. "wlan0")
   @utf8InCpp
   String getInterfaceName();
-
-  // @return Returns the associated devices to this hotspot.
-  NativeWifiClient[] getConnectedClients();
 }

@@ -38,11 +38,13 @@ class PnoSettings : public ::android::Parcelable {
   PnoSettings()
       : interval_ms_(0),
         min_2g_rssi_(0),
-        min_5g_rssi_(0) {}
+        min_5g_rssi_(0),
+        min_6g_rssi_(0) {}
   bool operator==(const PnoSettings& rhs) const {
     return (pno_networks_ == rhs.pno_networks_ &&
             min_2g_rssi_ == rhs.min_2g_rssi_ &&
-            min_5g_rssi_ == rhs.min_5g_rssi_);
+            min_5g_rssi_ == rhs.min_5g_rssi_ &&
+            min_6g_rssi_ == rhs.min_6g_rssi_);
   }
   ::android::status_t writeToParcel(::android::Parcel* parcel) const override;
   ::android::status_t readFromParcel(const ::android::Parcel* parcel) override;
@@ -50,6 +52,7 @@ class PnoSettings : public ::android::Parcelable {
   int32_t interval_ms_;
   int32_t min_2g_rssi_;
   int32_t min_5g_rssi_;
+  int32_t min_6g_rssi_;
   std::vector<PnoNetwork> pno_networks_;
 };
 

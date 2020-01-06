@@ -381,6 +381,25 @@ Status Server::getAvailableDFSChannels(
   return Status::ok();
 }
 
+Status Server::getAvailable6gChannels(
+    std::unique_ptr<vector<int32_t>>* out_frequencies) {
+  BandInfo band_info;
+  ScanCapabilities scan_capabilities_ignored;
+  WiphyFeatures wiphy_features_ignored;
+
+  if (!netlink_utils_->GetWiphyInfo(base_wiphy_index_, &band_info,
+                                    &scan_capabilities_ignored,
+                                    &wiphy_features_ignored)) {
+    LOG(ERROR) << "Failed to get wiphy info from kernel";
+    out_frequencies->reset(nullptr);
+    return Status::ok();
+  }
+
+  out_frequencies->reset(
+      new vector<int32_t>(band_info.band_6g.begin(), band_info.band_6g.end()));
+  return Status::ok();
+}
+
 bool Server::SetupInterface(const std::string& iface_name,
                             InterfaceInfo* interface,
                             uint32_t *wiphy_index) {
@@ -452,6 +471,11 @@ void Server::LogSupportedBands() {
     ss << " " << band_info.band_dfs[i];
   }
   LOG(INFO) << "5Ghz DFS frequencies:"<< ss.str();
+
+  for (unsigned int i = 0; i < band_info.band_6g.size(); i++) {
+    ss << " " << band_info.band_6g[i];
+  }
+  LOG(INFO) << "6Ghz frequencies:"<< ss.str();
 }
 
 void Server::BroadcastClientInterfaceReady(
