@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.server.wifi.wificond;
+package android.net.wifi.wificond;
 
-parcelable PnoSettings cpp_header "wificond/scanning/pno_settings.h";
+/**
+ * A callback for receiving pno scanning events.
+ * @hide
+ */
+interface IPnoScanEvent {
+  oneway void OnPnoNetworkFound();
+  oneway void OnPnoScanFailed();
+}

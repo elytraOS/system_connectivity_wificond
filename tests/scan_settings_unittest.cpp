@@ -18,19 +18,19 @@
 
 #include <gtest/gtest.h>
 
-#include "android/net/wifi/IWifiScannerImpl.h"
+#include "android/net/wifi/wificond/IWifiScannerImpl.h"
 #include "wificond/scanning/channel_settings.h"
 #include "wificond/scanning/hidden_network.h"
 #include "wificond/scanning/pno_network.h"
 #include "wificond/scanning/pno_settings.h"
 #include "wificond/scanning/single_scan_settings.h"
 
-using ::android::net::wifi::IWifiScannerImpl;
-using ::com::android::server::wifi::wificond::ChannelSettings;
-using ::com::android::server::wifi::wificond::HiddenNetwork;
-using ::com::android::server::wifi::wificond::PnoNetwork;
-using ::com::android::server::wifi::wificond::PnoSettings;
-using ::com::android::server::wifi::wificond::SingleScanSettings;
+using ::android::net::wifi::wificond::IWifiScannerImpl;
+using ::android::net::wifi::wificond::ChannelSettings;
+using ::android::net::wifi::wificond::HiddenNetwork;
+using ::android::net::wifi::wificond::PnoNetwork;
+using ::android::net::wifi::wificond::PnoSettings;
+using ::android::net::wifi::wificond::SingleScanSettings;
 using std::vector;
 
 namespace android {

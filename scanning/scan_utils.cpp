@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "android/net/wifi/IWifiScannerImpl.h"
+#include "android/net/wifi/wificond/IWifiScannerImpl.h"
 #include "wificond/scanning/scan_utils.h"
 
 #include <array>
@@ -30,9 +30,9 @@
 #include "wificond/net/nl80211_packet.h"
 #include "wificond/scanning/scan_result.h"
 
-using android::net::wifi::IWifiScannerImpl;
-using com::android::server::wifi::wificond::NativeScanResult;
-using com::android::server::wifi::wificond::RadioChainInfo;
+using android::net::wifi::wificond::IWifiScannerImpl;
+using android::net::wifi::wificond::NativeScanResult;
+using android::net::wifi::wificond::RadioChainInfo;
 using std::array;
 using std::unique_ptr;
 using std::vector;
@@ -132,7 +132,7 @@ bool ScanUtils::GetScanResult(uint32_t interface_index,
 bool ScanUtils::ParseScanResult(unique_ptr<const NL80211Packet> packet,
                                 NativeScanResult* scan_result) {
   if (packet->GetCommand() != NL80211_CMD_NEW_SCAN_RESULTS) {
-    LOG(ERROR) << "Wrong command command for new scan result message";
+    LOG(ERROR) << "Wrong command for new scan result message";
     return false;
   }
   NL80211NestedAttr bss(0);

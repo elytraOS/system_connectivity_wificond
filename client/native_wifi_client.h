@@ -22,9 +22,8 @@
 #include <binder/Parcel.h>
 #include <binder/Parcelable.h>
 
-namespace com {
 namespace android {
-namespace server {
+namespace net {
 namespace wifi {
 namespace wificond {
 
@@ -42,8 +41,7 @@ class NativeWifiClient : public ::android::Parcelable {
 
 }  // namespace wificond
 }  // namespace wifi
-}  // namespace server
+}  // namespace net
 }  // namespace android
-}  // namespace com
 
 #endif  // WIFICOND_NATIVE_WIFI_CLIENT_H_

@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-package android.net.wifi;
+package android.net.wifi.wificond;
 
-// A callback for receiving scanning events.
-interface IScanEvent {
-  oneway void OnScanResultReady();
-  oneway void OnScanFailed();
-}
+parcelable PnoNetwork cpp_header "wificond/scanning/pno_network.h";

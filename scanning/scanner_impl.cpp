@@ -26,13 +26,13 @@
 #include "wificond/scanning/scan_utils.h"
 
 using android::binder::Status;
-using android::net::wifi::IPnoScanEvent;
-using android::net::wifi::IScanEvent;
-using android::net::wifi::IWifiScannerImpl;
 using android::sp;
-using com::android::server::wifi::wificond::NativeScanResult;
-using com::android::server::wifi::wificond::PnoSettings;
-using com::android::server::wifi::wificond::SingleScanSettings;
+using android::net::wifi::wificond::IPnoScanEvent;
+using android::net::wifi::wificond::IScanEvent;
+using android::net::wifi::wificond::IWifiScannerImpl;
+using android::net::wifi::wificond::NativeScanResult;
+using android::net::wifi::wificond::PnoSettings;
+using android::net::wifi::wificond::SingleScanSettings;
 
 using std::string;
 using std::vector;
@@ -424,7 +424,7 @@ void ScannerImpl::OnSchedScanResultsReady(uint32_t interface_index,
 }
 
 SchedScanIntervalSetting ScannerImpl::GenerateIntervalSetting(
-    const ::com::android::server::wifi::wificond::PnoSettings&
+    const android::net::wifi::wificond::PnoSettings&
         pno_settings) const {
   bool support_num_scan_plans = scan_capabilities_.max_num_scan_plans >= 2;
   bool support_scan_plan_interval =

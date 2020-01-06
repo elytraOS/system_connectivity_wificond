@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-package com.android.server.wifi.wificond;
+package android.net.wifi.wificond;
 
-parcelable PnoNetwork cpp_header "wificond/scanning/pno_network.h";
+parcelable PnoSettings cpp_header "wificond/scanning/pno_settings.h";

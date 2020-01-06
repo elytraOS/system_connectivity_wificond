@@ -24,10 +24,10 @@
 #include <android-base/macros.h>
 #include <wifi_system/interface_tool.h>
 
-#include "android/net/wifi/BnWificond.h"
-#include "android/net/wifi/IApInterface.h"
-#include "android/net/wifi/IClientInterface.h"
-#include "android/net/wifi/IInterfaceEventCallback.h"
+#include "android/net/wifi/wificond/BnWificond.h"
+#include "android/net/wifi/wificond/IApInterface.h"
+#include "android/net/wifi/wificond/IClientInterface.h"
+#include "android/net/wifi/wificond/IInterfaceEventCallback.h"
 
 #include "wificond/ap_interface_impl.h"
 #include "wificond/client_interface_impl.h"
@@ -41,7 +41,7 @@ class ScanUtils;
 
 struct InterfaceInfo;
 
-class Server : public android::net::wifi::BnWificond {
+class Server : public android::net::wifi::wificond::BnWificond {
  public:
   Server(std::unique_ptr<wifi_system::InterfaceTool> if_tool,
          NetlinkUtils* netlink_utils,
@@ -49,10 +49,10 @@ class Server : public android::net::wifi::BnWificond {
   ~Server() override = default;
 
   android::binder::Status RegisterCallback(
-      const android::sp<android::net::wifi::IInterfaceEventCallback>&
+      const android::sp<android::net::wifi::wificond::IInterfaceEventCallback>&
           callback) override;
   android::binder::Status UnregisterCallback(
-      const android::sp<android::net::wifi::IInterfaceEventCallback>&
+      const android::sp<android::net::wifi::wificond::IInterfaceEventCallback>&
           callback) override;
   // Returns a vector of available frequencies for 2.4GHz channels.
   android::binder::Status getAvailable2gChannels(
@@ -69,12 +69,12 @@ class Server : public android::net::wifi::BnWificond {
 
   android::binder::Status createApInterface(
       const std::string& iface_name,
-      android::sp<android::net::wifi::IApInterface>*
+      android::sp<android::net::wifi::wificond::IApInterface>*
           created_interface) override;
 
   android::binder::Status createClientInterface(
       const std::string& iface_name,
-      android::sp<android::net::wifi::IClientInterface>*
+      android::sp<android::net::wifi::wificond::IClientInterface>*
           created_interface) override;
 
   android::binder::Status tearDownApInterface(
@@ -112,13 +112,13 @@ class Server : public android::net::wifi::BnWificond {
   void LogSupportedBands();
   void OnRegDomainChanged(std::string& country_code);
   void BroadcastClientInterfaceReady(
-      android::sp<android::net::wifi::IClientInterface> network_interface);
+      android::sp<android::net::wifi::wificond::IClientInterface> network_interface);
   void BroadcastApInterfaceReady(
-      android::sp<android::net::wifi::IApInterface> network_interface);
+      android::sp<android::net::wifi::wificond::IApInterface> network_interface);
   void BroadcastClientInterfaceTornDown(
-      android::sp<android::net::wifi::IClientInterface> network_interface);
+      android::sp<android::net::wifi::wificond::IClientInterface> network_interface);
   void BroadcastApInterfaceTornDown(
-      android::sp<android::net::wifi::IApInterface> network_interface);
+      android::sp<android::net::wifi::wificond::IApInterface> network_interface);
   void MarkDownAllInterfaces();
 
   const std::string base_ifname_;
@@ -130,7 +130,7 @@ class Server : public android::net::wifi::BnWificond {
   std::map<std::string, uint32_t> wiphy_indexes_;
   std::map<std::string, std::unique_ptr<ApInterfaceImpl>> ap_interfaces_;
   std::map<std::string, std::unique_ptr<ClientInterfaceImpl>> client_interfaces_;
-  std::vector<android::sp<android::net::wifi::IInterfaceEventCallback>>
+  std::vector<android::sp<android::net::wifi::wificond::IInterfaceEventCallback>>
       interface_event_callbacks_;
 
   // Cached interface list from kernel.

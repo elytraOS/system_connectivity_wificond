@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package android.net.wifi;
+package android.net.wifi.wificond;
 
-import android.net.wifi.IApInterfaceEventCallback;
-import com.android.server.wifi.wificond.NativeWifiClient;
+import android.net.wifi.wificond.IApInterfaceEventCallback;
+import android.net.wifi.wificond.NativeWifiClient;
 
-// IApInterface represents a network interface configured to act as a
-// WiFi access point.
+/**
+ * IApInterface represents a network interface configured to act as a
+ * WiFi access point.
+ * @hide
+ */
 interface IApInterface {
 
   const int ENCRYPTION_TYPE_NONE = 0;

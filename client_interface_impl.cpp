@@ -29,9 +29,9 @@
 #include "wificond/scanning/scan_utils.h"
 #include "wificond/scanning/scanner_impl.h"
 
-using android::net::wifi::IClientInterface;
-using android::net::wifi::ISendMgmtFrameEvent;
-using com::android::server::wifi::wificond::NativeScanResult;
+using android::net::wifi::wificond::IClientInterface;
+using android::net::wifi::wificond::ISendMgmtFrameEvent;
+using android::net::wifi::wificond::NativeScanResult;
 using android::sp;
 using android::wifi_system::InterfaceTool;
 
@@ -165,7 +165,7 @@ ClientInterfaceImpl::~ClientInterfaceImpl() {
   if_tool_->SetUpState(interface_name_.c_str(), false);
 }
 
-sp<android::net::wifi::IClientInterface> ClientInterfaceImpl::GetBinder() const {
+sp<android::net::wifi::wificond::IClientInterface> ClientInterfaceImpl::GetBinder() const {
   return binder_;
 }
 

@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package android.net.wifi;
+package android.net.wifi.wificond;
 
-import android.net.wifi.IApInterface;
-import android.net.wifi.IClientInterface;
+import android.net.wifi.wificond.IApInterface;
+import android.net.wifi.wificond.IClientInterface;
 
-// A callback for receiving events related to this chip.
+/**
+ * A callback for receiving events related to this chip.
+ * @hide
+ */
 interface IInterfaceEventCallback {
 
   // Signals that the provided interface is ready for future commands.

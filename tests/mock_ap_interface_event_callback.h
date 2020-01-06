@@ -20,20 +20,20 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "android/net/wifi/IApInterfaceEventCallback.h"
+#include "android/net/wifi/wificond/IApInterfaceEventCallback.h"
 
 namespace android {
 namespace wificond {
 
 class MockApInterfaceEventCallback
-    : public net::wifi::IApInterfaceEventCallback {
+    : public net::wifi::wificond::IApInterfaceEventCallback {
  public:
   MockApInterfaceEventCallback() = default;
   ~MockApInterfaceEventCallback() = default;
 
   MOCK_METHOD0(onAsBinder, IBinder*());
   MOCK_METHOD2(onConnectedClientsChanged, ::android::binder::Status(
-    const ::com::android::server::wifi::wificond::NativeWifiClient &, bool isConnected));
+    const android::net::wifi::wificond::NativeWifiClient &, bool isConnected));
   MOCK_METHOD2(onSoftApChannelSwitched, ::android::binder::Status(int, int));
 };
 

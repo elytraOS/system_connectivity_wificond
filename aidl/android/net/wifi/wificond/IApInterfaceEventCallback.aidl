@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package android.net.wifi;
+package android.net.wifi.wificond;
 
-import com.android.server.wifi.wificond.NativeWifiClient;
+import android.net.wifi.wificond.NativeWifiClient;
 
-// A callback for receiving events related to soft AP.
+/**
+ * A callback for receiving events related to soft AP.
+ * @hide
+ */
 oneway interface IApInterfaceEventCallback {
 
   // Channel bandwidth type. Used in |onSoftApChannelSwitched|
