@@ -46,6 +46,7 @@ const uint8_t kFakeSsid1[] =
 constexpr int32_t kFakePnoIntervalMs = 20000;
 constexpr int32_t kFakePnoMin2gRssi = -80;
 constexpr int32_t kFakePnoMin5gRssi = -85;
+constexpr int32_t kFakePnoMin6gRssi = -89;
 
 constexpr uint32_t kFakeFrequency = 5260;
 constexpr uint32_t kFakeFrequency1 = 2460;
@@ -162,6 +163,7 @@ TEST_F(ScanSettingsTest, PnoSettingsParcelableTest) {
   pno_settings.interval_ms_ = kFakePnoIntervalMs;
   pno_settings.min_2g_rssi_ = kFakePnoMin2gRssi;
   pno_settings.min_5g_rssi_ = kFakePnoMin5gRssi;
+  pno_settings.min_6g_rssi_ = kFakePnoMin6gRssi;
 
   pno_settings.pno_networks_ = {network, network1};
 

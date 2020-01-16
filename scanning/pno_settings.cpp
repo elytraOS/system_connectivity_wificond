@@ -34,6 +34,7 @@ status_t PnoSettings::writeToParcel(::android::Parcel* parcel) const {
   RETURN_IF_FAILED(parcel->writeInt32(interval_ms_));
   RETURN_IF_FAILED(parcel->writeInt32(min_2g_rssi_));
   RETURN_IF_FAILED(parcel->writeInt32(min_5g_rssi_));
+  RETURN_IF_FAILED(parcel->writeInt32(min_6g_rssi_));
   RETURN_IF_FAILED(parcel->writeInt32(pno_networks_.size()));
   for (const auto& network : pno_networks_) {
     // For Java readTypedList():
@@ -48,6 +49,7 @@ status_t PnoSettings::readFromParcel(const ::android::Parcel* parcel) {
   RETURN_IF_FAILED(parcel->readInt32(&interval_ms_));
   RETURN_IF_FAILED(parcel->readInt32(&min_2g_rssi_));
   RETURN_IF_FAILED(parcel->readInt32(&min_5g_rssi_));
+  RETURN_IF_FAILED(parcel->readInt32(&min_6g_rssi_));
   int32_t num_pno_networks = 0;
   RETURN_IF_FAILED(parcel->readInt32(&num_pno_networks));
   for (int i = 0; i < num_pno_networks; i++) {
