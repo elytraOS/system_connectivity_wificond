@@ -28,6 +28,7 @@
 
 #include "wificond/net/kernel-header-latest/nl80211.h"
 #include "wificond/net/netlink_manager.h"
+#include "wificond/net/nl80211_packet.h"
 
 namespace android {
 namespace wificond {
@@ -48,16 +49,13 @@ struct InterfaceInfo {
   std::array<uint8_t, ETH_ALEN> mac_address;
 };
 
+// Constants to construct standardsMask
+#define IEEE80211N_SUPPORTED  (1 << 0)
+#define IEEE80211AC_SUPPORTED (1 << 1)
+#define IEEE80211AX_SUPPORTED (1 << 2)
+
 struct BandInfo {
   BandInfo() = default;
-  BandInfo(std::vector<uint32_t>& band_2g_,
-           std::vector<uint32_t>& band_5g_,
-           std::vector<uint32_t>& band_dfs_,
-           std::vector<uint32_t>& band_6g_)
-      : band_2g(band_2g_),
-        band_5g(band_5g_),
-        band_dfs(band_dfs_),
-        band_6g(band_6g_){}
   // Frequencies for 2.4 GHz band.
   std::vector<uint32_t> band_2g;
   // Frequencies for 5 GHz band without DFS.
@@ -66,6 +64,8 @@ struct BandInfo {
   std::vector<uint32_t> band_dfs;
   // Frequencies for 6 GHz band.
   std::vector<uint32_t> band_6g;
+  // Standards supported
+  uint32_t standardsMask;
 };
 
 struct ScanCapabilities {
@@ -289,6 +289,8 @@ class NetlinkUtils {
   bool MergePacketsForSplitWiphyDump(
       const std::vector<std::unique_ptr<const NL80211Packet>>& split_dump_info,
       std::vector<NL80211Packet>* packet_per_wiphy);
+  void handleBandFreqAttributes(const NL80211NestedAttr& freqs_attr,
+      BandInfo* out_band_info);
 
   NetlinkManager* netlink_manager_;
 

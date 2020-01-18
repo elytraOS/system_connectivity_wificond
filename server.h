@@ -93,6 +93,11 @@ class Server : public android::net::wifi::wificond::BnWificond {
       std::vector<android::sp<android::IBinder>>* out_ap_ifs) override;
   status_t dump(int fd, const Vector<String16>& args) override;
 
+  // Returns device wiphy capabilities for an interface
+  android::binder::Status getDeviceWiphyCapabilities(
+      const std::string& iface_name,
+      ::std::unique_ptr<net::wifi::wificond::DeviceWiphyCapabilities>* capabilities) override;
+
  private:
   // Request interface information from kernel and setup local interface object.
   // This assumes that interface should be in STATION mode. Even if we setup

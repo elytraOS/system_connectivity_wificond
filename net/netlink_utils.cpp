@@ -419,65 +419,85 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
     LOG(ERROR) << "Failed to get bands within NL80211_ATTR_WIPHY_BANDS";
     return false;
   }
-  vector<uint32_t> frequencies_2g;
-  vector<uint32_t> frequencies_5g;
-  vector<uint32_t> frequencies_dfs;
-  vector<uint32_t> frequencies_6g;
-  for (unsigned int band_index = 0; band_index < bands.size(); band_index++) {
+
+  uint32_t supportedStandards = 0;
+  *out_band_info = BandInfo();
+
+  for (auto& band : bands) {
     NL80211NestedAttr freqs_attr(0);
-    if (!bands[band_index].GetAttribute(NL80211_BAND_ATTR_FREQS, &freqs_attr)) {
-      LOG(DEBUG) << "Failed to get NL80211_BAND_ATTR_FREQS";
-      continue;
+    if (band.GetAttribute(NL80211_BAND_ATTR_FREQS, &freqs_attr)) {
+      handleBandFreqAttributes(freqs_attr, out_band_info);
     }
-    vector<NL80211NestedAttr> freqs;
-    if (!freqs_attr.GetListOfNestedAttributes(&freqs)) {
-      LOG(ERROR) << "Failed to get frequencies within NL80211_BAND_ATTR_FREQS";
-      continue;
+    if (band.HasAttribute(NL80211_BAND_ATTR_HT_CAPA)) {
+      supportedStandards |= IEEE80211N_SUPPORTED;
     }
-    for (auto& freq : freqs) {
-      uint32_t frequency_value;
-      if (!freq.GetAttributeValue(NL80211_FREQUENCY_ATTR_FREQ,
-                                  &frequency_value)) {
-        LOG(DEBUG) << "Failed to get NL80211_FREQUENCY_ATTR_FREQ";
-        continue;
-      }
-      // Channel is disabled in current regulatory domain.
-      if (freq.HasAttribute(NL80211_FREQUENCY_ATTR_DISABLED)) {
-        continue;
-      }
-      if (frequency_value > k2GHzFrequencyLowerBound &&
-            frequency_value < k2GHzFrequencyUpperBound) {
-          frequencies_2g.push_back(frequency_value);
-      } else if (frequency_value > k5GHzFrequencyLowerBound &&
-            frequency_value < k5GHzFrequencyUpperBound) {
-        // If this is an available/usable DFS frequency, we should save it to
-        // DFS frequencies list.
-        uint32_t dfs_state;
-        if (freq.GetAttributeValue(NL80211_FREQUENCY_ATTR_DFS_STATE,
-                                   &dfs_state) &&
-            (dfs_state == NL80211_DFS_AVAILABLE ||
-                 dfs_state == NL80211_DFS_USABLE)) {
-          frequencies_dfs.push_back(frequency_value);
-          continue;
-        }
+    if (band.HasAttribute(NL80211_BAND_ATTR_VHT_CAPA)) {
+      supportedStandards |= IEEE80211AC_SUPPORTED;
+    }
 
-        // Put non-dfs passive-only channels into the dfs category.
-        // This aligns with what framework always assumes.
-        if (freq.HasAttribute(NL80211_FREQUENCY_ATTR_NO_IR)) {
-          frequencies_dfs.push_back(frequency_value);
-          continue;
-        }
-
-        // Otherwise, this is a regular 5g frequency.
-        frequencies_5g.push_back(frequency_value);
-      } else if (frequency_value > k6GHzFrequencyLowerBound &&
-          frequency_value < k6GHzFrequencyUpperBound) {
-        frequencies_6g.push_back(frequency_value);
+    NL80211NestedAttr iftype_data_attr(0);
+    if (band.GetAttribute(NL80211_BAND_ATTR_IFTYPE_DATA,
+        &iftype_data_attr)) {
+      if (iftype_data_attr.HasAttribute(NL80211_BAND_IFTYPE_ATTR_HE_CAP_PHY)) {
+        supportedStandards |= IEEE80211AX_SUPPORTED;
       }
     }
   }
-  *out_band_info = BandInfo(frequencies_2g, frequencies_5g, frequencies_dfs, frequencies_6g);
+  out_band_info->standardsMask = supportedStandards;
+
   return true;
+}
+
+void NetlinkUtils::handleBandFreqAttributes(const NL80211NestedAttr& freqs_attr,
+                                            BandInfo* out_band_info) {
+  vector<NL80211NestedAttr> freqs;
+  if (!freqs_attr.GetListOfNestedAttributes(&freqs)) {
+    LOG(ERROR) << "Failed to get frequency attributes";
+    return;
+  }
+
+  for (auto& freq : freqs) {
+    uint32_t frequency_value;
+    if (!freq.GetAttributeValue(NL80211_FREQUENCY_ATTR_FREQ,
+                                &frequency_value)) {
+      LOG(DEBUG) << "Failed to get NL80211_FREQUENCY_ATTR_FREQ";
+      continue;
+    }
+    // Channel is disabled in current regulatory domain.
+    if (freq.HasAttribute(NL80211_FREQUENCY_ATTR_DISABLED)) {
+      continue;
+    }
+
+    if (frequency_value > k2GHzFrequencyLowerBound &&
+        frequency_value < k2GHzFrequencyUpperBound) {
+      out_band_info->band_2g.push_back(frequency_value);
+    } else if (frequency_value > k5GHzFrequencyLowerBound &&
+        frequency_value < k5GHzFrequencyUpperBound) {
+      // If this is an available/usable DFS frequency, we should save it to
+      // DFS frequencies list.
+      uint32_t dfs_state;
+      if (freq.GetAttributeValue(NL80211_FREQUENCY_ATTR_DFS_STATE,
+                                 &dfs_state) &&
+        (dfs_state == NL80211_DFS_AVAILABLE ||
+            dfs_state == NL80211_DFS_USABLE)) {
+        out_band_info->band_dfs.push_back(frequency_value);
+        continue;
+      }
+
+      // Put non-dfs passive-only channels into the dfs category.
+      // This aligns with what framework always assumes.
+      if (freq.HasAttribute(NL80211_FREQUENCY_ATTR_NO_IR)) {
+        out_band_info->band_dfs.push_back(frequency_value);
+        continue;
+      }
+
+      // Otherwise, this is a regular 5g frequency.
+      out_band_info->band_5g.push_back(frequency_value);
+    } else if (frequency_value > k6GHzFrequencyLowerBound &&
+        frequency_value < k6GHzFrequencyUpperBound) {
+      out_band_info->band_6g.push_back(frequency_value);
+    }
+  }
 }
 
 bool NetlinkUtils::GetStationInfo(uint32_t interface_index,
