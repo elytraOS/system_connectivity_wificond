@@ -31,7 +31,11 @@ class DeviceWiphyCapabilities : public ::android::Parcelable {
   bool operator==(const DeviceWiphyCapabilities& rhs) const {
     return (is80211nSupported_ == rhs.is80211nSupported_
             && is80211acSupported_ == rhs.is80211acSupported_
-            && is80211axSupported_ == rhs.is80211axSupported_);
+            && is80211axSupported_ == rhs.is80211axSupported_
+            && is160MhzSupported_ == rhs.is160MhzSupported_
+            && is80p80MhzSupported_ == rhs.is80p80MhzSupported_
+            && maxTxStreams_ == rhs.maxTxStreams_
+            && maxRxStreams_ == rhs.maxRxStreams_);
   }
   ::android::status_t writeToParcel(::android::Parcel* parcel) const override;
   ::android::status_t readFromParcel(const ::android::Parcel* parcel) override;
@@ -39,6 +43,10 @@ class DeviceWiphyCapabilities : public ::android::Parcelable {
   bool is80211nSupported_;
   bool is80211acSupported_;
   bool is80211axSupported_;
+  bool is160MhzSupported_;
+  bool is80p80MhzSupported_;
+  uint32_t maxTxStreams_;
+  uint32_t maxRxStreams_;
 };
 
 }  // namespace wificond

@@ -338,12 +338,13 @@ Status Server::getDeviceWiphyCapabilities(
 
   capabilities->reset(new DeviceWiphyCapabilities());
 
-  capabilities->get()->is80211nSupported_  =
-          (band_info.standardsMask & IEEE80211N_SUPPORTED) != 0;
-  capabilities->get()->is80211acSupported_ =
-          (band_info.standardsMask & IEEE80211AC_SUPPORTED) != 0;
-  capabilities->get()->is80211axSupported_ =
-          (band_info.standardsMask & IEEE80211AX_SUPPORTED) != 0;
+  capabilities->get()->is80211nSupported_  = band_info.is_80211n_supported;
+  capabilities->get()->is80211acSupported_ = band_info.is_80211ac_supported;
+  capabilities->get()->is80211axSupported_ = band_info.is_80211ax_supported;
+  capabilities->get()->is160MhzSupported_ = band_info.is_160_mhz_supported;
+  capabilities->get()->is80p80MhzSupported_ = band_info.is_80p80_mhz_supported;
+  capabilities->get()->maxTxStreams_ = band_info.max_tx_streams;
+  capabilities->get()->maxRxStreams_ = band_info.max_rx_streams;
 
   return Status::ok();
 }

@@ -420,30 +420,28 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
     return false;
   }
 
-  uint32_t supportedStandards = 0;
   *out_band_info = BandInfo();
-
+  //TODO: b/144576344: Need to get also channel width, and #streams
   for (auto& band : bands) {
     NL80211NestedAttr freqs_attr(0);
     if (band.GetAttribute(NL80211_BAND_ATTR_FREQS, &freqs_attr)) {
       handleBandFreqAttributes(freqs_attr, out_band_info);
     }
     if (band.HasAttribute(NL80211_BAND_ATTR_HT_CAPA)) {
-      supportedStandards |= IEEE80211N_SUPPORTED;
+      out_band_info->is_80211n_supported = true;
     }
     if (band.HasAttribute(NL80211_BAND_ATTR_VHT_CAPA)) {
-      supportedStandards |= IEEE80211AC_SUPPORTED;
+      out_band_info->is_80211ac_supported = true;
     }
 
     NL80211NestedAttr iftype_data_attr(0);
     if (band.GetAttribute(NL80211_BAND_ATTR_IFTYPE_DATA,
         &iftype_data_attr)) {
       if (iftype_data_attr.HasAttribute(NL80211_BAND_IFTYPE_ATTR_HE_CAP_PHY)) {
-        supportedStandards |= IEEE80211AX_SUPPORTED;
+        out_band_info->is_80211ax_supported = true;
       }
     }
   }
-  out_band_info->standardsMask = supportedStandards;
 
   return true;
 }

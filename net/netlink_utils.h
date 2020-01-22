@@ -49,11 +49,6 @@ struct InterfaceInfo {
   std::array<uint8_t, ETH_ALEN> mac_address;
 };
 
-// Constants to construct standardsMask
-#define IEEE80211N_SUPPORTED  (1 << 0)
-#define IEEE80211AC_SUPPORTED (1 << 1)
-#define IEEE80211AX_SUPPORTED (1 << 2)
-
 struct BandInfo {
   BandInfo() = default;
   // Frequencies for 2.4 GHz band.
@@ -64,8 +59,20 @@ struct BandInfo {
   std::vector<uint32_t> band_dfs;
   // Frequencies for 6 GHz band.
   std::vector<uint32_t> band_6g;
-  // Standards supported
-  uint32_t standardsMask;
+  // support for 802.11n
+  bool is_80211n_supported;
+  // support for 802.11ac
+  bool is_80211ac_supported;
+  // support for 802.11ax
+  bool is_80211ax_supported;
+  // support for 160Mhz channel width
+  bool is_160_mhz_supported;
+  // support for 80+80Mhz channel width
+  bool is_80p80_mhz_supported;
+  // Max number of transmit spatial streams
+  uint32_t max_tx_streams;
+  // Max number of receive spatial streams
+  uint32_t max_rx_streams;
 };
 
 struct ScanCapabilities {
