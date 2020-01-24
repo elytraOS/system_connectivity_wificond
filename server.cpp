@@ -36,6 +36,7 @@ using android::IBinder;
 using android::net::wifi::wificond::IApInterface;
 using android::net::wifi::wificond::IClientInterface;
 using android::net::wifi::wificond::IInterfaceEventCallback;
+using android::net::wifi::wificond::DeviceWiphyCapabilities;
 using android::wifi_system::InterfaceTool;
 
 using std::endl;
@@ -397,6 +398,41 @@ Status Server::getAvailable6gChannels(
 
   out_frequencies->reset(
       new vector<int32_t>(band_info.band_6g.begin(), band_info.band_6g.end()));
+  return Status::ok();
+}
+
+Status Server::getDeviceWiphyCapabilities(
+    const std::string& iface_name,
+    std::unique_ptr<DeviceWiphyCapabilities>* capabilities) {
+  uint32_t wiphy_index;
+  if (!netlink_utils_->GetWiphyIndex(&wiphy_index, iface_name)) {
+    LOG(ERROR) << "Failed to get wiphy index";
+    capabilities = nullptr;
+    return Status::ok();
+  }
+
+  BandInfo band_info;
+  ScanCapabilities scan_capabilities_ignored;
+  WiphyFeatures wiphy_features_ignored;
+
+  if (!netlink_utils_->GetWiphyInfo(wiphy_index, &band_info,
+                                    &scan_capabilities_ignored,
+                                    &wiphy_features_ignored)) {
+    LOG(ERROR) << "Failed to get wiphy info from kernel";
+    capabilities = nullptr;
+    return Status::ok();
+  }
+
+  capabilities->reset(new DeviceWiphyCapabilities());
+
+  capabilities->get()->is80211nSupported_  = band_info.is_80211n_supported;
+  capabilities->get()->is80211acSupported_ = band_info.is_80211ac_supported;
+  capabilities->get()->is80211axSupported_ = band_info.is_80211ax_supported;
+  capabilities->get()->is160MhzSupported_ = band_info.is_160_mhz_supported;
+  capabilities->get()->is80p80MhzSupported_ = band_info.is_80p80_mhz_supported;
+  capabilities->get()->maxTxStreams_ = band_info.max_tx_streams;
+  capabilities->get()->maxRxStreams_ = band_info.max_rx_streams;
+
   return Status::ok();
 }
 

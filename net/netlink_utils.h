@@ -28,6 +28,7 @@
 
 #include "wificond/net/kernel-header-latest/nl80211.h"
 #include "wificond/net/netlink_manager.h"
+#include "wificond/net/nl80211_packet.h"
 
 namespace android {
 namespace wificond {
@@ -50,14 +51,6 @@ struct InterfaceInfo {
 
 struct BandInfo {
   BandInfo() = default;
-  BandInfo(std::vector<uint32_t>& band_2g_,
-           std::vector<uint32_t>& band_5g_,
-           std::vector<uint32_t>& band_dfs_,
-           std::vector<uint32_t>& band_6g_)
-      : band_2g(band_2g_),
-        band_5g(band_5g_),
-        band_dfs(band_dfs_),
-        band_6g(band_6g_){}
   // Frequencies for 2.4 GHz band.
   std::vector<uint32_t> band_2g;
   // Frequencies for 5 GHz band without DFS.
@@ -66,6 +59,20 @@ struct BandInfo {
   std::vector<uint32_t> band_dfs;
   // Frequencies for 6 GHz band.
   std::vector<uint32_t> band_6g;
+  // support for 802.11n
+  bool is_80211n_supported;
+  // support for 802.11ac
+  bool is_80211ac_supported;
+  // support for 802.11ax
+  bool is_80211ax_supported;
+  // support for 160Mhz channel width
+  bool is_160_mhz_supported;
+  // support for 80+80Mhz channel width
+  bool is_80p80_mhz_supported;
+  // Max number of transmit spatial streams
+  uint32_t max_tx_streams;
+  // Max number of receive spatial streams
+  uint32_t max_rx_streams;
 };
 
 struct WifiGenerationCapabilities {
@@ -330,6 +337,8 @@ class NetlinkUtils {
   bool MergePacketsForSplitWiphyDump(
       const std::vector<std::unique_ptr<const NL80211Packet>>& split_dump_info,
       std::vector<NL80211Packet>* packet_per_wiphy);
+  void handleBandFreqAttributes(const NL80211NestedAttr& freqs_attr,
+      BandInfo* out_band_info);
 
   NetlinkManager* netlink_manager_;
 

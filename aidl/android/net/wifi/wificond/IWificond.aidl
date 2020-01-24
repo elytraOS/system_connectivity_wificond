@@ -19,6 +19,7 @@ package android.net.wifi.wificond;
 import android.net.wifi.wificond.IApInterface;
 import android.net.wifi.wificond.IClientInterface;
 import android.net.wifi.wificond.IInterfaceEventCallback;
+import android.net.wifi.wificond.DeviceWiphyCapabilities;
 
 /**
  * Service interface that exposes primitives for controlling the WiFi
@@ -101,4 +102,7 @@ interface IWificond {
     //
     // @param callback object to remove from the set of registered callbacks.
     oneway void UnregisterCallback(IInterfaceEventCallback callback);
+
+    // @return a device wiphy capabilities for an interface
+    @nullable DeviceWiphyCapabilities getDeviceWiphyCapabilities(@utf8InCpp String iface_name);
 }
