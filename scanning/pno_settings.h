@@ -48,7 +48,7 @@ class PnoSettings : public ::android::Parcelable {
   ::android::status_t writeToParcel(::android::Parcel* parcel) const override;
   ::android::status_t readFromParcel(const ::android::Parcel* parcel) override;
 
-  int32_t interval_ms_;
+  int64_t interval_ms_;
   int32_t min_2g_rssi_;
   int32_t min_5g_rssi_;
   int32_t min_6g_rssi_;
