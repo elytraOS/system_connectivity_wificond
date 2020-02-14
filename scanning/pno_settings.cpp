@@ -31,7 +31,7 @@ const uint32_t PnoSettings::kFastScanIterations = 3;
 const uint32_t PnoSettings::kSlowScanIntervalMultiplier = 3;
 
 status_t PnoSettings::writeToParcel(::android::Parcel* parcel) const {
-  RETURN_IF_FAILED(parcel->writeInt32(interval_ms_));
+  RETURN_IF_FAILED(parcel->writeInt64(interval_ms_));
   RETURN_IF_FAILED(parcel->writeInt32(min_2g_rssi_));
   RETURN_IF_FAILED(parcel->writeInt32(min_5g_rssi_));
   RETURN_IF_FAILED(parcel->writeInt32(min_6g_rssi_));
@@ -46,7 +46,7 @@ status_t PnoSettings::writeToParcel(::android::Parcel* parcel) const {
 }
 
 status_t PnoSettings::readFromParcel(const ::android::Parcel* parcel) {
-  RETURN_IF_FAILED(parcel->readInt32(&interval_ms_));
+  RETURN_IF_FAILED(parcel->readInt64(&interval_ms_));
   RETURN_IF_FAILED(parcel->readInt32(&min_2g_rssi_));
   RETURN_IF_FAILED(parcel->readInt32(&min_5g_rssi_));
   RETURN_IF_FAILED(parcel->readInt32(&min_6g_rssi_));

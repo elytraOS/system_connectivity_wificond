@@ -37,6 +37,7 @@ using std::make_pair;
 using std::make_unique;
 using std::map;
 using std::move;
+using std::pair;
 using std::string;
 using std::unique_ptr;
 using std::vector;
@@ -56,6 +57,16 @@ uint32_t k5GHzFrequencyUpperBound = 5850;
 
 uint32_t k6GHzFrequencyLowerBound = 5925;
 uint32_t k6GHzFrequencyUpperBound = 7125;
+
+constexpr uint8_t kHtMcsSetNumByte = 16;
+constexpr uint8_t kVhtMcsSetNumByte = 8;
+constexpr uint8_t kHeMcsSetNumByteMin = 4;
+constexpr uint8_t kMaxStreams = 8;
+constexpr uint8_t kVht160MhzBitMask = 0x4;
+constexpr uint8_t kVht80p80MhzBitMask = 0x8;
+constexpr uint8_t kHeCapPhyNumByte = 11;
+constexpr uint8_t kHe160MhzBitMask = 0x8;
+constexpr uint8_t kHe80p80MhzBitMask = 0x10;
 
 bool IsExtFeatureFlagSet(
     const std::vector<uint8_t>& ext_feature_flags_bytes,
@@ -481,7 +492,6 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
   }
 
   *out_band_info = BandInfo();
-  //TODO: b/144576344: Need to get also channel width, and #streams
   for (auto& band : bands) {
     NL80211NestedAttr freqs_attr(0);
     if (band.GetAttribute(NL80211_BAND_ATTR_FREQS, &freqs_attr)) {
@@ -501,6 +511,7 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
         out_band_info->is_80211ax_supported = true;
       }
     }
+    ParsePhyCapabilities(band, out_band_info);
   }
 
   return true;
@@ -555,6 +566,155 @@ void NetlinkUtils::handleBandFreqAttributes(const NL80211NestedAttr& freqs_attr,
         frequency_value < k6GHzFrequencyUpperBound) {
       out_band_info->band_6g.push_back(frequency_value);
     }
+  }
+}
+
+void NetlinkUtils::ParsePhyCapabilities(const NL80211NestedAttr& band,
+                                        BandInfo* out_band_info) {
+  ParseHtMcsSetAttribute(band, out_band_info);
+  ParseVhtMcsSetAttribute(band, out_band_info);
+  ParseHeMcsSetAttribute(band, out_band_info);
+  ParseVhtCapAttribute(band, out_band_info);
+  ParseHeCapAttribute(band, out_band_info);
+}
+
+void NetlinkUtils::ParseHtMcsSetAttribute(const NL80211NestedAttr& band,
+                                          BandInfo* out_band_info) {
+  vector<uint8_t> ht_mcs_set;
+  if (!band.GetAttributeValue(NL80211_BAND_ATTR_HT_MCS_SET, &ht_mcs_set)) {
+    return;
+  }
+  if (ht_mcs_set.size() < kHtMcsSetNumByte) {
+    LOG(ERROR) << "HT MCS set size is incorrect";
+    return;
+  }
+  pair<uint32_t, uint32_t> max_streams_ht = ParseHtMcsSet(ht_mcs_set);
+  out_band_info->max_tx_streams = std::max(out_band_info->max_tx_streams,
+                                           max_streams_ht.first);
+  out_band_info->max_rx_streams = std::max(out_band_info->max_rx_streams,
+                                           max_streams_ht.second);
+}
+
+pair<uint32_t, uint32_t> NetlinkUtils::ParseHtMcsSet(
+    const vector<uint8_t>& ht_mcs_set) {
+  uint32_t max_rx_streams = 1;
+  for (int i = 4; i >= 1; i--) {
+    if (ht_mcs_set[i - 1] > 0) {
+      max_rx_streams = i;
+      break;
+    }
+  }
+
+  uint32_t max_tx_streams = max_rx_streams;
+  uint8_t supported_tx_mcs_set = ht_mcs_set[12];
+  uint8_t tx_mcs_set_defined = supported_tx_mcs_set & 0x1;
+  uint8_t tx_rx_mcs_set_not_equal = (supported_tx_mcs_set >> 1) & 0x1;
+  if (tx_mcs_set_defined && tx_rx_mcs_set_not_equal) {
+    uint8_t max_nss_tx_field_value = (supported_tx_mcs_set >> 2) & 0x3;
+    // The maximum number of Tx streams is 1 more than the field value.
+    max_tx_streams = max_nss_tx_field_value + 1;
+  }
+
+  return std::make_pair(max_tx_streams, max_rx_streams);
+}
+
+void NetlinkUtils::ParseVhtMcsSetAttribute(const NL80211NestedAttr& band,
+                                           BandInfo* out_band_info) {
+  vector<uint8_t> vht_mcs_set;
+  if (!band.GetAttributeValue(NL80211_BAND_ATTR_VHT_MCS_SET, &vht_mcs_set)) {
+    return;
+  }
+  if (vht_mcs_set.size() < kVhtMcsSetNumByte) {
+    LOG(ERROR) << "VHT MCS set size is incorrect";
+    return;
+  }
+  uint16_t vht_mcs_set_rx = (vht_mcs_set[1] << 8) | vht_mcs_set[0];
+  uint32_t max_rx_streams_vht = ParseMcsMap(vht_mcs_set_rx);
+  uint16_t vht_mcs_set_tx = (vht_mcs_set[5] << 8) | vht_mcs_set[4];
+  uint32_t max_tx_streams_vht = ParseMcsMap(vht_mcs_set_tx);
+  out_band_info->max_tx_streams = std::max(out_band_info->max_tx_streams,
+                                           max_tx_streams_vht);
+  out_band_info->max_rx_streams = std::max(out_band_info->max_rx_streams,
+                                           max_rx_streams_vht);
+}
+
+void NetlinkUtils::ParseHeMcsSetAttribute(const NL80211NestedAttr& band,
+                                          BandInfo* out_band_info) {
+  NL80211NestedAttr iftype_data_attr(0);
+  if (!band.GetAttribute(NL80211_BAND_ATTR_IFTYPE_DATA, &iftype_data_attr)) {
+    return;
+  }
+  vector<uint8_t> he_mcs_set;
+  if (!iftype_data_attr.GetAttributeValue(
+      NL80211_BAND_IFTYPE_ATTR_HE_CAP_MCS_SET,
+      &he_mcs_set)) {
+    return;
+  }
+  if (he_mcs_set.size() < kHeMcsSetNumByteMin) {
+    LOG(ERROR) << "HE MCS set size is incorrect";
+    return;
+  }
+  uint16_t he_mcs_map_rx = (he_mcs_set[1] << 8) | he_mcs_set[0];
+  uint32_t max_rx_streams_he = ParseMcsMap(he_mcs_map_rx);
+  uint16_t he_mcs_map_tx = (he_mcs_set[3] << 8) | he_mcs_set[2];
+  uint32_t max_tx_streams_he = ParseMcsMap(he_mcs_map_tx);
+  out_band_info->max_tx_streams = std::max(out_band_info->max_tx_streams,
+                                           max_tx_streams_he);
+  out_band_info->max_rx_streams = std::max(out_band_info->max_rx_streams,
+                                           max_rx_streams_he);
+}
+
+uint32_t NetlinkUtils::ParseMcsMap(uint16_t mcs_map)
+{
+  uint32_t max_nss = 1;
+  for (int i = kMaxStreams; i >= 1; i--) {
+    uint16_t stream_map = (mcs_map >> ((i - 1) * 2)) & 0x3;
+    // 0x3 means unsupported
+    if (stream_map != 0x3) {
+      max_nss = i;
+      break;
+    }
+  }
+  return max_nss;
+}
+
+void NetlinkUtils::ParseVhtCapAttribute(const NL80211NestedAttr& band,
+                                        BandInfo* out_band_info) {
+  uint32_t vht_cap;
+  if (!band.GetAttributeValue(NL80211_BAND_ATTR_VHT_CAPA, &vht_cap)) {
+    return;
+  }
+
+  if (vht_cap & kVht160MhzBitMask) {
+    out_band_info->is_160_mhz_supported = true;
+  }
+  if (vht_cap & kVht80p80MhzBitMask) {
+    out_band_info->is_80p80_mhz_supported = true;
+  }
+}
+
+void NetlinkUtils::ParseHeCapAttribute(const NL80211NestedAttr& band,
+                                       BandInfo* out_band_info) {
+  NL80211NestedAttr iftype_data_attr(0);
+  if (!band.GetAttribute(NL80211_BAND_ATTR_IFTYPE_DATA, &iftype_data_attr)) {
+    return;
+  }
+  vector<uint8_t> he_cap_phy;
+  if (!iftype_data_attr.GetAttributeValue(
+      NL80211_BAND_IFTYPE_ATTR_HE_CAP_PHY,
+      &he_cap_phy)) {
+    return;
+  }
+
+  if (he_cap_phy.size() < kHeCapPhyNumByte) {
+    LOG(ERROR) << "HE Cap PHY size is incorrect";
+    return;
+  }
+  if (he_cap_phy[0] & kHe160MhzBitMask) {
+    out_band_info->is_160_mhz_supported = true;
+  }
+  if (he_cap_phy[0] & kHe80p80MhzBitMask) {
+    out_band_info->is_80p80_mhz_supported = true;
   }
 }
 

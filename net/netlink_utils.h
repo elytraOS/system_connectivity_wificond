@@ -50,7 +50,14 @@ struct InterfaceInfo {
 };
 
 struct BandInfo {
-  BandInfo() = default;
+  BandInfo():
+      is_80211n_supported(false),
+      is_80211ac_supported(false),
+      is_80211ax_supported(false),
+      is_160_mhz_supported(false),
+      is_80p80_mhz_supported(false),
+      max_tx_streams(1),
+      max_rx_streams(1) {};
   // Frequencies for 2.4 GHz band.
   std::vector<uint32_t> band_2g;
   // Frequencies for 5 GHz band without DFS.
@@ -325,6 +332,22 @@ class NetlinkUtils {
       WiphyFeatures* out_wiphy_features);
   bool ParseBandInfo(const NL80211Packet* const packet,
                      BandInfo* out_band_info);
+  void ParsePhyCapabilities(const NL80211NestedAttr& band,
+                            BandInfo* out_band_info);
+  void ParseHtMcsSetAttribute(const NL80211NestedAttr& band,
+                              BandInfo* out_band_info);
+  void ParseVhtMcsSetAttribute(const NL80211NestedAttr& band,
+                               BandInfo* out_band_info);
+  void ParseHeMcsSetAttribute(const NL80211NestedAttr& band,
+                              BandInfo* out_band_info);
+  std::pair<uint32_t, uint32_t> ParseHtMcsSet(
+      const std::vector<uint8_t>& ht_mcs_set);
+  uint32_t ParseMcsMap(uint16_t mcs_map);
+  void ParseVhtCapAttribute(const NL80211NestedAttr& band,
+                            BandInfo* out_band_info);
+  void ParseHeCapAttribute(const NL80211NestedAttr& band,
+                           BandInfo* out_band_info);
+
   bool ParseScanCapabilities(const NL80211Packet* const packet,
                              ScanCapabilities* out_scan_capabilities);
   bool ParseWifiGenerationInfoFromPacket(
