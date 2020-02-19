@@ -25,7 +25,7 @@
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 class NativeWifiClient : public ::android::Parcelable {
  public:
@@ -39,7 +39,7 @@ class NativeWifiClient : public ::android::Parcelable {
   std::vector<uint8_t> mac_address_;
 };
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

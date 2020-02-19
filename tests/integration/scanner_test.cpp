@@ -20,13 +20,13 @@
 #include <gtest/gtest.h>
 #include <utils/StrongPointer.h>
 
-#include "android/net/wifi/wificond/IClientInterface.h"
-#include "android/net/wifi/wificond/IWificond.h"
+#include "android/net/wifi/nl80211/IClientInterface.h"
+#include "android/net/wifi/nl80211/IWificond.h"
 #include "wificond/tests/integration/process_utils.h"
 
-using android::net::wifi::wificond::IClientInterface;
-using android::net::wifi::wificond::IWificond;
-using android::net::wifi::wificond::IWifiScannerImpl;
+using android::net::wifi::nl80211::IClientInterface;
+using android::net::wifi::nl80211::IWificond;
+using android::net::wifi::nl80211::IWifiScannerImpl;
 using android::wificond::tests::integration::ScopedDevModeWificond;
 using std::unique_ptr;
 using std::vector;

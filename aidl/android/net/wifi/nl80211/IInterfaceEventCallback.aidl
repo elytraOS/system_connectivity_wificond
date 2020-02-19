@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package android.net.wifi.wificond;
+package android.net.wifi.nl80211;
 
-import android.net.wifi.wificond.IApInterface;
-import android.net.wifi.wificond.IClientInterface;
+import android.net.wifi.nl80211.IApInterface;
+import android.net.wifi.nl80211.IClientInterface;
 
 /**
  * A callback for receiving events related to this chip.

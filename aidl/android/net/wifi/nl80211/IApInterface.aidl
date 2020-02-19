@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package android.net.wifi.wificond;
+package android.net.wifi.nl80211;
 
-import android.net.wifi.wificond.IApInterfaceEventCallback;
-import android.net.wifi.wificond.NativeWifiClient;
+import android.net.wifi.nl80211.IApInterfaceEventCallback;
+import android.net.wifi.nl80211.NativeWifiClient;
 
 /**
  * IApInterface represents a network interface configured to act as a

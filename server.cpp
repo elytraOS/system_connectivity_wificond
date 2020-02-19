@@ -32,10 +32,10 @@ using android::base::WriteStringToFd;
 using android::binder::Status;
 using android::sp;
 using android::IBinder;
-using android::net::wifi::wificond::IApInterface;
-using android::net::wifi::wificond::IClientInterface;
-using android::net::wifi::wificond::IInterfaceEventCallback;
-using android::net::wifi::wificond::DeviceWiphyCapabilities;
+using android::net::wifi::nl80211::IApInterface;
+using android::net::wifi::nl80211::IClientInterface;
+using android::net::wifi::nl80211::IInterfaceEventCallback;
+using android::net::wifi::nl80211::DeviceWiphyCapabilities;
 using android::wifi_system::InterfaceTool;
 
 using std::endl;

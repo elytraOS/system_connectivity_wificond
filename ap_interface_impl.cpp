@@ -23,9 +23,9 @@
 #include "wificond/ap_interface_binder.h"
 #include "wificond/logging_utils.h"
 
-using android::net::wifi::wificond::IApInterface;
+using android::net::wifi::nl80211::IApInterface;
 using android::wifi_system::InterfaceTool;
-using android::net::wifi::wificond::NativeWifiClient;
+using android::net::wifi::nl80211::NativeWifiClient;
 using std::array;
 using std::endl;
 using std::string;

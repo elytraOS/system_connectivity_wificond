@@ -25,7 +25,7 @@ using android::status_t;
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 status_t HiddenNetwork::writeToParcel(::android::Parcel* parcel) const {
   RETURN_IF_FAILED(parcel->writeByteVector(ssid_));
@@ -37,7 +37,7 @@ status_t HiddenNetwork::readFromParcel(const ::android::Parcel* parcel) {
   return ::android::OK;
 }
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android
