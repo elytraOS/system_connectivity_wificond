@@ -39,7 +39,7 @@ class MockScanUtils : public ScanUtils {
       OnScanResultsReadyHandler handler));
   MOCK_METHOD2(GetScanResult, bool(
       uint32_t interface_index,
-      std::vector<android::net::wifi::wificond::NativeScanResult>* out_scan_results));
+      std::vector<android::net::wifi::nl80211::NativeScanResult>* out_scan_results));
 
   MOCK_METHOD6(Scan, bool(
       uint32_t interface_index,

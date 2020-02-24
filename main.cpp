@@ -38,7 +38,7 @@
 #include "wificond/server.h"
 #include "wifi_keystore_hal_connector.h"
 
-using android::net::wifi::wificond::IWificond;
+using android::net::wifi::nl80211::IWificond;
 using android::wifi_system::InterfaceTool;
 using android::wificond::ipc_constants::kServiceName;
 using android::wificond::WifiKeystoreHalConnector;

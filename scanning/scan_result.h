@@ -30,7 +30,7 @@
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 // This is the class to represent a scan result for wificond internal use.
 class NativeScanResult : public ::android::Parcelable {
@@ -86,7 +86,7 @@ class NativeScanResult : public ::android::Parcelable {
   std::vector<RadioChainInfo> radio_chain_infos;
 };
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

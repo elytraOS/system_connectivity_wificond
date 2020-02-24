@@ -23,7 +23,7 @@
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 class RadioChainInfo : public ::android::Parcelable {
  public:
@@ -41,7 +41,7 @@ class RadioChainInfo : public ::android::Parcelable {
   int32_t level;
 };
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

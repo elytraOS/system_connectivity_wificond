@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package android.net.wifi.wificond;
+package android.net.wifi.nl80211;
 
-import android.net.wifi.wificond.IPnoScanEvent;
-import android.net.wifi.wificond.IScanEvent;
-import android.net.wifi.wificond.NativeScanResult;
-import android.net.wifi.wificond.PnoSettings;
-import android.net.wifi.wificond.SingleScanSettings;
+import android.net.wifi.nl80211.IPnoScanEvent;
+import android.net.wifi.nl80211.IScanEvent;
+import android.net.wifi.nl80211.NativeScanResult;
+import android.net.wifi.nl80211.PnoSettings;
+import android.net.wifi.nl80211.SingleScanSettings;
 
 /**
  * @hide

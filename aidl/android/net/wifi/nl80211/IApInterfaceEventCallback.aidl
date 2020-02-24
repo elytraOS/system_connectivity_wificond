@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package android.net.wifi.wificond;
+package android.net.wifi.nl80211;
 
-import android.net.wifi.wificond.NativeWifiClient;
+import android.net.wifi.nl80211.NativeWifiClient;
 
 /**
  * A callback for receiving events related to soft AP.

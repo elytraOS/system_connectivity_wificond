@@ -32,7 +32,7 @@
 #include "wificond/ap_interface_impl.h"
 
 using android::wifi_system::MockInterfaceTool;
-using android::net::wifi::wificond::NativeWifiClient;
+using android::net::wifi::nl80211::NativeWifiClient;
 using std::array;
 using std::placeholders::_1;
 using std::placeholders::_2;

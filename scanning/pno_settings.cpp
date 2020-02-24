@@ -25,7 +25,7 @@ using android::status_t;
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 const uint32_t PnoSettings::kFastScanIterations = 3;
 const uint32_t PnoSettings::kSlowScanIntervalMultiplier = 3;
@@ -70,7 +70,7 @@ status_t PnoSettings::readFromParcel(const ::android::Parcel* parcel) {
   return ::android::OK;
 }
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

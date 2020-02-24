@@ -25,7 +25,7 @@ using android::status_t;
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 DeviceWiphyCapabilities::DeviceWiphyCapabilities() {
   is80211nSupported_ = false;
@@ -60,7 +60,7 @@ status_t DeviceWiphyCapabilities::readFromParcel(const ::android::Parcel* parcel
   return ::android::OK;
 }
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

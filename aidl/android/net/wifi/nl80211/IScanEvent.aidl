@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
-package android.net.wifi.wificond;
+package android.net.wifi.nl80211;
 
-parcelable SingleScanSettings cpp_header "wificond/scanning/single_scan_settings.h";
+/**
+ * A callback for receiving scanning events.
+ * @hide
+ */
+interface IScanEvent {
+  oneway void OnScanResultReady();
+  oneway void OnScanFailed();
+}

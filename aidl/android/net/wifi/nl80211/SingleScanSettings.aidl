@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-package android.net.wifi.wificond;
+package android.net.wifi.nl80211;
 
-parcelable NativeScanResult cpp_header "wificond/scanning/scan_result.h";
+parcelable SingleScanSettings cpp_header "wificond/scanning/single_scan_settings.h";

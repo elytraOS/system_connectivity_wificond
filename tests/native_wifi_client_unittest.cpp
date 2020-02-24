@@ -20,7 +20,7 @@
 
 #include "wificond/client/native_wifi_client.h"
 
-using ::android::net::wifi::wificond::NativeWifiClient;
+using ::android::net::wifi::nl80211::NativeWifiClient;
 using std::vector;
 
 namespace android {

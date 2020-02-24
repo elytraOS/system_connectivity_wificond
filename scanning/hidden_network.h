@@ -25,7 +25,7 @@
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 class HiddenNetwork : public ::android::Parcelable {
  public:
@@ -39,7 +39,7 @@ class HiddenNetwork : public ::android::Parcelable {
   std::vector<uint8_t> ssid_;
 };
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android
