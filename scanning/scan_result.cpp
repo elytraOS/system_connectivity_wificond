@@ -30,7 +30,7 @@ using std::string;
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 NativeScanResult::NativeScanResult(std::vector<uint8_t>& ssid_,
                                    std::array<uint8_t, ETH_ALEN>& bssid_,
@@ -134,7 +134,7 @@ void NativeScanResult::DebugLog() {
 
 }
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

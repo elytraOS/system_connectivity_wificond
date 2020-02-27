@@ -28,7 +28,7 @@
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 class SingleScanSettings : public ::android::Parcelable {
  public:
@@ -49,7 +49,7 @@ class SingleScanSettings : public ::android::Parcelable {
   bool isValidScanType() const;
 };
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

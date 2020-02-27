@@ -32,13 +32,14 @@ using android::base::WriteStringToFd;
 using android::binder::Status;
 using android::sp;
 using android::IBinder;
-using android::net::wifi::wificond::IApInterface;
-using android::net::wifi::wificond::IClientInterface;
-using android::net::wifi::wificond::IInterfaceEventCallback;
-using android::net::wifi::wificond::DeviceWiphyCapabilities;
+using android::net::wifi::nl80211::IApInterface;
+using android::net::wifi::nl80211::IClientInterface;
+using android::net::wifi::nl80211::IInterfaceEventCallback;
+using android::net::wifi::nl80211::DeviceWiphyCapabilities;
 using android::wifi_system::InterfaceTool;
 
 using std::endl;
+using std::optional;
 using std::placeholders::_1;
 using std::string;
 using std::stringstream;
@@ -241,7 +242,7 @@ void Server::MarkDownAllInterfaces() {
 }
 
 Status Server::getAvailable2gChannels(
-    std::unique_ptr<vector<int32_t>>* out_frequencies) {
+    std::optional<vector<int32_t>>* out_frequencies) {
   BandInfo band_info;
   ScanCapabilities scan_capabilities_ignored;
   WiphyFeatures wiphy_features_ignored;
@@ -250,17 +251,16 @@ Status Server::getAvailable2gChannels(
                                     &scan_capabilities_ignored,
                                     &wiphy_features_ignored)) {
     LOG(ERROR) << "Failed to get wiphy info from kernel";
-    out_frequencies->reset(nullptr);
+    out_frequencies->reset();
     return Status::ok();
   }
 
-  out_frequencies->reset(
-      new vector<int32_t>(band_info.band_2g.begin(), band_info.band_2g.end()));
+  out_frequencies->emplace(band_info.band_2g.begin(), band_info.band_2g.end());
   return Status::ok();
 }
 
 Status Server::getAvailable5gNonDFSChannels(
-    std::unique_ptr<vector<int32_t>>* out_frequencies) {
+    std::optional<vector<int32_t>>* out_frequencies) {
   BandInfo band_info;
   ScanCapabilities scan_capabilities_ignored;
   WiphyFeatures wiphy_features_ignored;
@@ -269,17 +269,16 @@ Status Server::getAvailable5gNonDFSChannels(
                                     &scan_capabilities_ignored,
                                     &wiphy_features_ignored)) {
     LOG(ERROR) << "Failed to get wiphy info from kernel";
-    out_frequencies->reset(nullptr);
+    out_frequencies->reset();
     return Status::ok();
   }
 
-  out_frequencies->reset(
-      new vector<int32_t>(band_info.band_5g.begin(), band_info.band_5g.end()));
+  out_frequencies->emplace(band_info.band_5g.begin(), band_info.band_5g.end());
   return Status::ok();
 }
 
 Status Server::getAvailableDFSChannels(
-    std::unique_ptr<vector<int32_t>>* out_frequencies) {
+    std::optional<vector<int32_t>>* out_frequencies) {
   BandInfo band_info;
   ScanCapabilities scan_capabilities_ignored;
   WiphyFeatures wiphy_features_ignored;
@@ -288,17 +287,17 @@ Status Server::getAvailableDFSChannels(
                                     &scan_capabilities_ignored,
                                     &wiphy_features_ignored)) {
     LOG(ERROR) << "Failed to get wiphy info from kernel";
-    out_frequencies->reset(nullptr);
+    out_frequencies->reset();
     return Status::ok();
   }
 
-  out_frequencies->reset(new vector<int32_t>(band_info.band_dfs.begin(),
-                                             band_info.band_dfs.end()));
+  out_frequencies->emplace(band_info.band_dfs.begin(),
+                           band_info.band_dfs.end());
   return Status::ok();
 }
 
 Status Server::getAvailable6gChannels(
-    std::unique_ptr<vector<int32_t>>* out_frequencies) {
+    std::optional<vector<int32_t>>* out_frequencies) {
   BandInfo band_info;
   ScanCapabilities scan_capabilities_ignored;
   WiphyFeatures wiphy_features_ignored;
@@ -307,18 +306,17 @@ Status Server::getAvailable6gChannels(
                                     &scan_capabilities_ignored,
                                     &wiphy_features_ignored)) {
     LOG(ERROR) << "Failed to get wiphy info from kernel";
-    out_frequencies->reset(nullptr);
+    out_frequencies->reset();
     return Status::ok();
   }
 
-  out_frequencies->reset(
-      new vector<int32_t>(band_info.band_6g.begin(), band_info.band_6g.end()));
+  out_frequencies->emplace(band_info.band_6g.begin(), band_info.band_6g.end());
   return Status::ok();
 }
 
 Status Server::getDeviceWiphyCapabilities(
     const std::string& iface_name,
-    std::unique_ptr<DeviceWiphyCapabilities>* capabilities) {
+    std::optional<DeviceWiphyCapabilities>* capabilities) {
   if (!RefreshWiphyIndex(iface_name)) {
     capabilities = nullptr;
     return Status::ok();
@@ -336,15 +334,15 @@ Status Server::getDeviceWiphyCapabilities(
     return Status::ok();
   }
 
-  capabilities->reset(new DeviceWiphyCapabilities());
+  capabilities->emplace();
 
-  capabilities->get()->is80211nSupported_  = band_info.is_80211n_supported;
-  capabilities->get()->is80211acSupported_ = band_info.is_80211ac_supported;
-  capabilities->get()->is80211axSupported_ = band_info.is_80211ax_supported;
-  capabilities->get()->is160MhzSupported_ = band_info.is_160_mhz_supported;
-  capabilities->get()->is80p80MhzSupported_ = band_info.is_80p80_mhz_supported;
-  capabilities->get()->maxTxStreams_ = band_info.max_tx_streams;
-  capabilities->get()->maxRxStreams_ = band_info.max_rx_streams;
+  capabilities->value().is80211nSupported_  = band_info.is_80211n_supported;
+  capabilities->value().is80211acSupported_ = band_info.is_80211ac_supported;
+  capabilities->value().is80211axSupported_ = band_info.is_80211ax_supported;
+  capabilities->value().is160MhzSupported_ = band_info.is_160_mhz_supported;
+  capabilities->value().is80p80MhzSupported_ = band_info.is_80p80_mhz_supported;
+  capabilities->value().maxTxStreams_ = band_info.max_tx_streams;
+  capabilities->value().maxRxStreams_ = band_info.max_rx_streams;
 
   return Status::ok();
 }

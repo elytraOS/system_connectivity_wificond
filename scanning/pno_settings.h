@@ -27,7 +27,7 @@
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 class PnoSettings : public ::android::Parcelable {
  public:
@@ -48,14 +48,14 @@ class PnoSettings : public ::android::Parcelable {
   ::android::status_t writeToParcel(::android::Parcel* parcel) const override;
   ::android::status_t readFromParcel(const ::android::Parcel* parcel) override;
 
-  int32_t interval_ms_;
+  int64_t interval_ms_;
   int32_t min_2g_rssi_;
   int32_t min_5g_rssi_;
   int32_t min_6g_rssi_;
   std::vector<PnoNetwork> pno_networks_;
 };
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

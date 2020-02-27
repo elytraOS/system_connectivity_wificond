@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package android.net.wifi.wificond;
+package android.net.wifi.nl80211;
 
-import android.net.wifi.wificond.ISendMgmtFrameEvent;
-import android.net.wifi.wificond.IWifiScannerImpl;
+import android.net.wifi.nl80211.ISendMgmtFrameEvent;
+import android.net.wifi.nl80211.IWifiScannerImpl;
 
 /**
  * IClientInterface represents a network interface that can be used to connect

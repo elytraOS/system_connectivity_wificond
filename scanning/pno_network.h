@@ -25,7 +25,7 @@
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 class PnoNetwork : public ::android::Parcelable {
  public:
@@ -42,7 +42,7 @@ class PnoNetwork : public ::android::Parcelable {
   std::vector<int32_t> frequencies_;
 };
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

@@ -23,7 +23,7 @@
 namespace android {
 namespace net {
 namespace wifi {
-namespace wificond {
+namespace nl80211 {
 
 class ChannelSettings : public ::android::Parcelable {
  public:
@@ -38,7 +38,7 @@ class ChannelSettings : public ::android::Parcelable {
   int32_t frequency_;
 };
 
-}  // namespace wificond
+}  // namespace nl80211
 }  // namespace wifi
 }  // namespace net
 }  // namespace android

@@ -28,10 +28,10 @@
 
 #include "wificond/net/netlink_manager.h"
 
-#include "android/net/wifi/wificond/IApInterface.h"
+#include "android/net/wifi/nl80211/IApInterface.h"
 
-using android::net::wifi::wificond::IApInterface;
-using android::net::wifi::wificond::NativeWifiClient;
+using android::net::wifi::nl80211::IApInterface;
+using android::net::wifi::nl80211::NativeWifiClient;
 
 namespace android {
 namespace wificond {

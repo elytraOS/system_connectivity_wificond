@@ -21,18 +21,18 @@
 
 #include "wificond/net/netlink_manager.h"
 
-#include "android/net/wifi/wificond/BnApInterface.h"
-#include "android/net/wifi/wificond/IApInterfaceEventCallback.h"
+#include "android/net/wifi/nl80211/BnApInterface.h"
+#include "android/net/wifi/nl80211/IApInterfaceEventCallback.h"
 
-using android::net::wifi::wificond::IApInterfaceEventCallback;
-using android::net::wifi::wificond::NativeWifiClient;
+using android::net::wifi::nl80211::IApInterfaceEventCallback;
+using android::net::wifi::nl80211::NativeWifiClient;
 
 namespace android {
 namespace wificond {
 
 class ApInterfaceImpl;
 
-class ApInterfaceBinder : public android::net::wifi::wificond::BnApInterface {
+class ApInterfaceBinder : public android::net::wifi::nl80211::BnApInterface {
  public:
   explicit ApInterfaceBinder(ApInterfaceImpl* impl);
   ~ApInterfaceBinder() override;
