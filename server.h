@@ -98,14 +98,6 @@ class Server : public android::net::wifi::nl80211::BnWificond {
       const std::string& iface_name,
       ::std::unique_ptr<net::wifi::nl80211::DeviceWiphyCapabilities>* capabilities) override;
 
-  android::binder::Status QcAddOrRemoveApInterface(
-      const std::string& iface_name,
-      bool add_iface,
-      bool* out_success) override;
-
-  android::binder::Status QcGetWifiGenerationCapabilities(
-      int* out_mask) override;
-
  private:
   // Request interface information from kernel and setup local interface object.
   // This assumes that interface should be in STATION mode. Even if we setup
