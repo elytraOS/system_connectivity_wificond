@@ -53,7 +53,7 @@ uint32_t k2GHzFrequencyUpperBound = 2500;
 uint32_t k5GHzFrequencyLowerBound = 5000;
 // This upper bound will exclude any 5.9Ghz channels which belong to 802.11p
 // for "vehicular communication systems".
-uint32_t k5GHzFrequencyUpperBound = 5850;
+uint32_t k5GHzFrequencyUpperBound = 5865;
 
 uint32_t k6GHzFrequencyLowerBound = 5925;
 uint32_t k6GHzFrequencyUpperBound = 7125;
@@ -541,7 +541,7 @@ void NetlinkUtils::handleBandFreqAttributes(const NL80211NestedAttr& freqs_attr,
         frequency_value < k2GHzFrequencyUpperBound) {
       out_band_info->band_2g.push_back(frequency_value);
     } else if (frequency_value > k5GHzFrequencyLowerBound &&
-        frequency_value < k5GHzFrequencyUpperBound) {
+        frequency_value <= k5GHzFrequencyUpperBound) {
       // If this is an available/usable DFS frequency, we should save it to
       // DFS frequencies list.
       uint32_t dfs_state;
