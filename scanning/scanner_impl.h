@@ -93,7 +93,8 @@ class ScannerImpl : public android::net::wifi::nl80211::BnWifiScannerImpl {
   bool pno_scan_started_;
   android::net::wifi::nl80211::PnoSettings pno_settings_;
 
-  uint32_t nodev_counter_;
+  uint32_t fatal_error_counter_;
+  uint32_t ebusy_error_counter_;
   const uint32_t interface_index_;
 
   // Scanning relevant capability information for this wiphy/interface.
