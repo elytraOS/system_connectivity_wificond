@@ -183,7 +183,7 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
         fatal_error_counter_++;
         LOG(WARNING) << "Scan failed with fatal error. counter=" << fatal_error_counter_;
     }
-    CHECK(fatal_error_counter_ <= 5 && ebusy_error_counter_ <= 10)
+    CHECK(fatal_error_counter_ <= 10 && ebusy_error_counter_ <= 10)
         << "Driver is in a bad state, restarting wificond";
     *out_success = false;
     return Status::ok();
@@ -300,7 +300,7 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
         LOG(WARNING) << "Scan failed with fatal error. counter=" << fatal_error_counter_;
     }
     LOG(ERROR) << "Failed to start pno scan";
-    CHECK(fatal_error_counter_ <= 5 && ebusy_error_counter_ <= 10)
+    CHECK(fatal_error_counter_ <= 10 && ebusy_error_counter_ <= 10)
         << "Driver is in a bad state, restarting wificond";
     return false;
   }
