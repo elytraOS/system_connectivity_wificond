@@ -73,8 +73,7 @@ ScannerImpl::ScannerImpl(uint32_t interface_index,
     : valid_(true),
       scan_started_(false),
       pno_scan_started_(false),
-      fatal_error_counter_(0),
-      ebusy_error_counter_(0),
+      nodev_counter_(0),
       interface_index_(interface_index),
       scan_capabilities_(scan_capabilities),
       wiphy_features_(wiphy_features),
@@ -176,20 +175,16 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
   int error_code = 0;
   if (!scan_utils_->Scan(interface_index_, request_random_mac, scan_type,
                          ssids, freqs, &error_code)) {
-    if (error_code == EBUSY) {
-        ebusy_error_counter_ ++;
-        LOG(WARNING) << "Scan failed with busy error. counter=" << ebusy_error_counter_;
-    } else {
-        fatal_error_counter_++;
-        LOG(WARNING) << "Scan failed with fatal error. counter=" << fatal_error_counter_;
+    if (error_code == ENODEV) {
+        nodev_counter_ ++;
+        LOG(WARNING) << "Scan failed with error=nodev. counter=" << nodev_counter_;
     }
-    CHECK(fatal_error_counter_ <= 10 && ebusy_error_counter_ <= 10)
+    CHECK(error_code != ENODEV || nodev_counter_ <= 3)
         << "Driver is in a bad state, restarting wificond";
     *out_success = false;
     return Status::ok();
   }
-  ebusy_error_counter_ = 0;
-  fatal_error_counter_ = 0;
+  nodev_counter_ = 0;
   scan_started_ = true;
   *out_success = true;
   return Status::ok();
@@ -292,15 +287,12 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
                                        match_ssids,
                                        freqs,
                                        &error_code)) {
-    if (error_code == EBUSY) {
-        ebusy_error_counter_ ++;
-        LOG(WARNING) << "Scan failed with busy error. counter=" << ebusy_error_counter_;
-    } else {
-        fatal_error_counter_++;
-        LOG(WARNING) << "Scan failed with fatal error. counter=" << fatal_error_counter_;
+    if (error_code == ENODEV) {
+        nodev_counter_ ++;
+        LOG(WARNING) << "Pno Scan failed with error=nodev. counter=" << nodev_counter_;
     }
     LOG(ERROR) << "Failed to start pno scan";
-    CHECK(fatal_error_counter_ <= 10 && ebusy_error_counter_ <= 10)
+    CHECK(error_code != ENODEV || nodev_counter_ <= 3)
         << "Driver is in a bad state, restarting wificond";
     return false;
   }
@@ -314,8 +306,7 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
     }
   }
   LOG(INFO) << "Pno scan started " << freq_string;
-  ebusy_error_counter_ = 0;
-  fatal_error_counter_ = 0;
+  nodev_counter_ = 0;
   pno_scan_started_ = true;
   return true;
 }
