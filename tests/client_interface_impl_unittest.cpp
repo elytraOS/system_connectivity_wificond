@@ -77,6 +77,8 @@ class ClientInterfaceImplTest : public ::testing::Test {
             OnFrameTxStatusEventHandler handler) {
           frame_tx_status_event_handler_ = handler;
         });
+    EXPECT_CALL(*netlink_utils_,
+                SubscribeChannelSwitchEvent(kTestInterfaceIndex, _));
     client_interface_.reset(new ClientInterfaceImpl{
         kTestWiphyIndex,
         kTestInterfaceName,
@@ -92,6 +94,8 @@ class ClientInterfaceImplTest : public ::testing::Test {
                 UnsubscribeMlmeEvent(kTestInterfaceIndex));
     EXPECT_CALL(*netlink_utils_,
                 UnsubscribeFrameTxStatusEvent(kTestInterfaceIndex));
+    EXPECT_CALL(*netlink_utils_,
+                UnsubscribeChannelSwitchEvent(kTestInterfaceIndex));
   }
 
   unique_ptr<NiceMock<MockInterfaceTool>> if_tool_{
