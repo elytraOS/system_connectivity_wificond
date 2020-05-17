@@ -88,6 +88,7 @@ class ClientInterfaceImpl {
 
  private:
   bool RefreshAssociateFreq();
+  bool OnChannelSwitchEvent(uint32_t frequency);
 
   const uint32_t wiphy_index_;
   const std::string interface_name_;
