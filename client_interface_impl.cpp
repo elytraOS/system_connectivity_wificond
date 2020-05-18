@@ -139,6 +139,9 @@ ClientInterfaceImpl::ClientInterfaceImpl(
     netlink_utils_->SubscribeChannelSwitchEvent(interface_index_,
 	std::bind(&ClientInterfaceImpl::OnChannelSwitchEvent, this, _1));
 
+  netlink_utils_->SubscribeChannelSwitchEvent(interface_index_,
+      std::bind(&ClientInterfaceImpl::OnChannelSwitchEvent, this, _1));
+
   if (!netlink_utils_->GetWiphyInfo(wiphy_index_,
                                &band_info_,
                                &scan_capabilities_,
@@ -162,6 +165,7 @@ ClientInterfaceImpl::~ClientInterfaceImpl() {
   scanner_->Invalidate();
   netlink_utils_->UnsubscribeFrameTxStatusEvent(interface_index_);
   netlink_utils_->UnsubscribeMlmeEvent(interface_index_);
+  netlink_utils_->UnsubscribeChannelSwitchEvent(interface_index_);
   if_tool_->SetUpState(interface_name_.c_str(), false);
 }
 
@@ -260,13 +264,13 @@ bool ClientInterfaceImpl::RefreshAssociateFreq() {
 }
 
 bool ClientInterfaceImpl::OnChannelSwitchEvent(uint32_t frequency) {
-    if(!frequency) {
-	LOG(ERROR) << "Frequency value is null";
-	return false;
-    }
-    LOG(INFO) << "New channel on frequency: " << frequency;
-    associate_freq_ = frequency;
-    return true;
+  if(!frequency) {
+    LOG(ERROR) << "Frequency value is null";
+    return false;
+  }
+  LOG(INFO) << "New channel on frequency: " << frequency;
+  associate_freq_ = frequency;
+  return true;
 }
 
 bool ClientInterfaceImpl::IsAssociated() const {

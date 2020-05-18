@@ -89,6 +89,7 @@ class ClientInterfaceImpl {
 
  private:
   bool RefreshAssociateFreq();
+  bool OnChannelSwitchEvent(uint32_t frequency);
 
   const uint32_t wiphy_index_;
   const std::string interface_name_;
@@ -115,7 +116,6 @@ class ClientInterfaceImpl {
   bool frame_tx_in_progress_;
   uint64_t frame_tx_status_cookie_;
   std::function<void(bool was_acked)> on_frame_tx_status_event_handler_;
-  bool OnChannelSwitchEvent(uint32_t frequency);
 
   DISALLOW_COPY_AND_ASSIGN(ClientInterfaceImpl);
   friend class MlmeEventHandlerImpl;
