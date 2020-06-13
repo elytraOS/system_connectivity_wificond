@@ -64,7 +64,9 @@ constexpr uint8_t kHeMcsSetNumByteMin = 4;
 constexpr uint8_t kMaxStreams = 8;
 constexpr uint8_t kVht160MhzBitMask = 0x4;
 constexpr uint8_t kVht80p80MhzBitMask = 0x8;
-constexpr uint8_t kHeCapPhyNumByte = 11;
+// Some old Linux kernel versions set it to 9.
+// 9 is OK because only 1st byte is used
+constexpr uint8_t kHeCapPhyNumByte = 9; // Should be 11
 constexpr uint8_t kHe160MhzBitMask = 0x8;
 constexpr uint8_t kHe80p80MhzBitMask = 0x10;
 
@@ -447,14 +449,31 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
     NL80211NestedAttr iftype_data_attr(0);
     if (band.GetAttribute(NL80211_BAND_ATTR_IFTYPE_DATA,
         &iftype_data_attr)) {
-      if (iftype_data_attr.HasAttribute(NL80211_BAND_IFTYPE_ATTR_HE_CAP_PHY)) {
-        out_band_info->is_80211ax_supported = true;
-      }
+      ParseIfTypeDataAttributes(iftype_data_attr, out_band_info);
     }
-    ParsePhyCapabilities(band, out_band_info);
+    ParseHtVhtPhyCapabilities(band, out_band_info);
   }
 
   return true;
+}
+
+void NetlinkUtils::ParseIfTypeDataAttributes(
+    const NL80211NestedAttr& iftype_data_attr,
+    BandInfo* out_band_info) {
+  vector<NL80211NestedAttr> attrs;
+  if (!iftype_data_attr.GetListOfNestedAttributes(&attrs) || attrs.empty()) {
+    LOG(ERROR) << "Failed to get the list of attributes under iftype_data_attr";
+    return;
+  }
+  NL80211NestedAttr attr = attrs[0];
+  if (attr.HasAttribute(NL80211_BAND_IFTYPE_ATTR_HE_CAP_PHY)) {
+    out_band_info->is_80211ax_supported = true;
+    ParseHeCapPhyAttribute(attr, out_band_info);
+  }
+  if (attr.HasAttribute(NL80211_BAND_IFTYPE_ATTR_HE_CAP_MCS_SET)) {
+    ParseHeMcsSetAttribute(attr, out_band_info);
+  }
+  return;
 }
 
 void NetlinkUtils::handleBandFreqAttributes(const NL80211NestedAttr& freqs_attr,
@@ -509,13 +528,11 @@ void NetlinkUtils::handleBandFreqAttributes(const NL80211NestedAttr& freqs_attr,
   }
 }
 
-void NetlinkUtils::ParsePhyCapabilities(const NL80211NestedAttr& band,
-                                        BandInfo* out_band_info) {
+void NetlinkUtils::ParseHtVhtPhyCapabilities(const NL80211NestedAttr& band,
+                                             BandInfo* out_band_info) {
   ParseHtMcsSetAttribute(band, out_band_info);
   ParseVhtMcsSetAttribute(band, out_band_info);
-  ParseHeMcsSetAttribute(band, out_band_info);
   ParseVhtCapAttribute(band, out_band_info);
-  ParseHeCapAttribute(band, out_band_info);
 }
 
 void NetlinkUtils::ParseHtMcsSetAttribute(const NL80211NestedAttr& band,
@@ -578,16 +595,13 @@ void NetlinkUtils::ParseVhtMcsSetAttribute(const NL80211NestedAttr& band,
                                            max_rx_streams_vht);
 }
 
-void NetlinkUtils::ParseHeMcsSetAttribute(const NL80211NestedAttr& band,
+void NetlinkUtils::ParseHeMcsSetAttribute(const NL80211NestedAttr& attribute,
                                           BandInfo* out_band_info) {
-  NL80211NestedAttr iftype_data_attr(0);
-  if (!band.GetAttribute(NL80211_BAND_ATTR_IFTYPE_DATA, &iftype_data_attr)) {
-    return;
-  }
   vector<uint8_t> he_mcs_set;
-  if (!iftype_data_attr.GetAttributeValue(
+  if (!attribute.GetAttributeValue(
       NL80211_BAND_IFTYPE_ATTR_HE_CAP_MCS_SET,
       &he_mcs_set)) {
+    LOG(ERROR) << " HE MCS set is not found ";
     return;
   }
   if (he_mcs_set.size() < kHeMcsSetNumByteMin) {
@@ -631,18 +645,17 @@ void NetlinkUtils::ParseVhtCapAttribute(const NL80211NestedAttr& band,
   if (vht_cap & kVht80p80MhzBitMask) {
     out_band_info->is_80p80_mhz_supported = true;
   }
+
 }
 
-void NetlinkUtils::ParseHeCapAttribute(const NL80211NestedAttr& band,
-                                       BandInfo* out_band_info) {
-  NL80211NestedAttr iftype_data_attr(0);
-  if (!band.GetAttribute(NL80211_BAND_ATTR_IFTYPE_DATA, &iftype_data_attr)) {
-    return;
-  }
+void NetlinkUtils::ParseHeCapPhyAttribute(const NL80211NestedAttr& attribute,
+                                          BandInfo* out_band_info) {
+
   vector<uint8_t> he_cap_phy;
-  if (!iftype_data_attr.GetAttributeValue(
+  if (!attribute.GetAttributeValue(
       NL80211_BAND_IFTYPE_ATTR_HE_CAP_PHY,
       &he_cap_phy)) {
+    LOG(ERROR) << " HE CAP PHY is not found";
     return;
   }
 
