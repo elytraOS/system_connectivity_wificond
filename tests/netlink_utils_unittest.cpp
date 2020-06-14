@@ -161,13 +161,16 @@ NL80211Attr<std::vector<uint8_t>> GenerateBandsAttributeForVhtMcsSet() {
 
 NL80211NestedAttr GenerateBandsAttributeForIfTypeData() {
   NL80211NestedAttr if_type_data(NL80211_BAND_ATTR_IFTYPE_DATA);
+
+  NL80211NestedAttr if_type_data1(1);
   std::vector<uint8_t> he_cap_phy(kHeCapPhy, kHeCapPhy + sizeof(kHeCapPhy));
   std::vector<uint8_t> he_mcs_set(kHeMcsSet, kHeMcsSet + sizeof(kHeMcsSet));
 
-  if_type_data.AddAttribute(NL80211Attr<std::vector<uint8_t>>(
+  if_type_data1.AddAttribute(NL80211Attr<std::vector<uint8_t>>(
       NL80211_BAND_IFTYPE_ATTR_HE_CAP_PHY, he_cap_phy));
-  if_type_data.AddAttribute(NL80211Attr<std::vector<uint8_t>>(
+  if_type_data1.AddAttribute(NL80211Attr<std::vector<uint8_t>>(
       NL80211_BAND_IFTYPE_ATTR_HE_CAP_MCS_SET, he_mcs_set));
+  if_type_data.AddAttribute(if_type_data1);
   return if_type_data;
 }
 
