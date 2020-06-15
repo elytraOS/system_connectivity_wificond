@@ -304,21 +304,23 @@ class NetlinkUtils {
       WiphyFeatures* out_wiphy_features);
   bool ParseBandInfo(const NL80211Packet* const packet,
                      BandInfo* out_band_info);
-  void ParsePhyCapabilities(const NL80211NestedAttr& band,
-                            BandInfo* out_band_info);
+  void ParseIfTypeDataAttributes(const NL80211NestedAttr& iftype_data_attr,
+                                 BandInfo* out_band_info);
+  void ParseHtVhtPhyCapabilities(const NL80211NestedAttr& band,
+                                 BandInfo* out_band_info);
   void ParseHtMcsSetAttribute(const NL80211NestedAttr& band,
                               BandInfo* out_band_info);
   void ParseVhtMcsSetAttribute(const NL80211NestedAttr& band,
                                BandInfo* out_band_info);
-  void ParseHeMcsSetAttribute(const NL80211NestedAttr& band,
+  void ParseHeMcsSetAttribute(const NL80211NestedAttr& attribute,
                               BandInfo* out_band_info);
   std::pair<uint32_t, uint32_t> ParseHtMcsSet(
       const std::vector<uint8_t>& ht_mcs_set);
   uint32_t ParseMcsMap(uint16_t mcs_map);
   void ParseVhtCapAttribute(const NL80211NestedAttr& band,
                             BandInfo* out_band_info);
-  void ParseHeCapAttribute(const NL80211NestedAttr& band,
-                           BandInfo* out_band_info);
+  void ParseHeCapPhyAttribute(const NL80211NestedAttr& attribute,
+                              BandInfo* out_band_info);
 
   bool ParseScanCapabilities(const NL80211Packet* const packet,
                              ScanCapabilities* out_scan_capabilities);
