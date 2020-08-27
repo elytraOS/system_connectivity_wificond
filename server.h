@@ -104,10 +104,10 @@ class Server : public android::net::wifi::nl80211::BnWificond {
   // interface on behalf of createApInterace(), it is Hostapd that configure
   // the interface to Ap mode later.
   // Returns true on success, false otherwise.
-  bool SetupInterface(const std::string& iface_name, InterfaceInfo* interface);
-  bool RefreshWiphyIndex(const std::string& iface_num);
-  void LogSupportedBands();
-  void OnRegDomainChanged(std::string& country_code);
+  bool SetupInterface(const std::string& iface_name, InterfaceInfo* interface,
+      uint32_t *wiphy_index);
+  void LogSupportedBands(uint32_t wiphy_index);
+  void OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code);
   void BroadcastClientInterfaceReady(
       android::sp<android::net::wifi::nl80211::IClientInterface> network_interface);
   void BroadcastApInterfaceReady(
@@ -117,12 +117,19 @@ class Server : public android::net::wifi::nl80211::BnWificond {
   void BroadcastApInterfaceTornDown(
       android::sp<android::net::wifi::nl80211::IApInterface> network_interface);
   void MarkDownAllInterfaces();
+  int FindWiphyIndex(const std::string& iface_name);
+  bool GetBandInfo(int wiphy_index, BandInfo* band_info);
+  int GetWiphyIndexFromBand(int band);
+  void UpdateBandWiphyIndexMap(int wiphy_index);
+  void EraseBandWiphyIndexMap(int wiphy_index);
 
   const std::unique_ptr<wifi_system::InterfaceTool> if_tool_;
   NetlinkUtils* const netlink_utils_;
   ScanUtils* const scan_utils_;
 
-  uint32_t wiphy_index_;
+  // Chips serves mutually exclusive bands.
+  std::map<uint32_t, uint32_t> band_to_wiphy_index_map_;
+  std::map<std::string, uint32_t> iface_to_wiphy_index_map_;
   std::map<std::string, std::unique_ptr<ApInterfaceImpl>> ap_interfaces_;
   std::map<std::string, std::unique_ptr<ClientInterfaceImpl>> client_interfaces_;
   std::vector<android::sp<android::net::wifi::nl80211::IInterfaceEventCallback>>
