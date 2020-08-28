@@ -229,7 +229,6 @@ TEST_F(ServerTest, CanDestroyApAndClientInterfaces) {
   // When we tear down the interfaces, we expect the iface to be unloaded.
   EXPECT_CALL(*if_tool_, SetUpState(StrEq(kFakeInterfaceName), Eq(false))).Times(2);
   EXPECT_CALL(*if_tool_, SetUpState(StrEq(kFakeInterfaceName1), Eq(false))).Times(2);
-  EXPECT_CALL(*if_tool_, SetUpState(StrEq(kFakeInterfaceNameP2p), Eq(false)));
 
   EXPECT_TRUE(server_.tearDownInterfaces().isOk());
 }
