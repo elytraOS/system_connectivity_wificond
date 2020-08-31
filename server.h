@@ -56,16 +56,16 @@ class Server : public android::net::wifi::nl80211::BnWificond {
           callback) override;
   // Returns a vector of available frequencies for 2.4GHz channels.
   android::binder::Status getAvailable2gChannels(
-      ::std::unique_ptr<::std::vector<int32_t>>* out_frequencies) override;
+      ::std::optional<::std::vector<int32_t>>* out_frequencies) override;
   // Returns a vector of available frequencies for 5GHz non-DFS channels.
   android::binder::Status getAvailable5gNonDFSChannels(
-      ::std::unique_ptr<::std::vector<int32_t>>* out_frequencies) override;
+      ::std::optional<::std::vector<int32_t>>* out_frequencies) override;
   // Returns a vector of available frequencies for DFS channels.
   android::binder::Status getAvailableDFSChannels(
-      ::std::unique_ptr<::std::vector<int32_t>>* out_frequencies) override;
+      ::std::optional<::std::vector<int32_t>>* out_frequencies) override;
   // Returns a vector of available frequencies for 6GHz channels.
   android::binder::Status getAvailable6gChannels(
-      ::std::unique_ptr<::std::vector<int32_t>>* out_frequencies) override;
+      ::std::optional<::std::vector<int32_t>>* out_frequencies) override;
 
   android::binder::Status createApInterface(
       const std::string& iface_name,
@@ -96,7 +96,7 @@ class Server : public android::net::wifi::nl80211::BnWificond {
   // Returns device wiphy capabilities for an interface
   android::binder::Status getDeviceWiphyCapabilities(
       const std::string& iface_name,
-      ::std::unique_ptr<net::wifi::nl80211::DeviceWiphyCapabilities>* capabilities) override;
+      ::std::optional<net::wifi::nl80211::DeviceWiphyCapabilities>* capabilities) override;
 
  private:
   // Request interface information from kernel and setup local interface object.
