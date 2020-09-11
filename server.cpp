@@ -342,6 +342,24 @@ Status Server::getAvailable6gChannels(
   return Status::ok();
 }
 
+Status Server::getAvailable60gChannels(
+    std::optional<vector<int32_t>>* out_frequencies) {
+  int wiphy_index = GetWiphyIndexFromBand(NL80211_BAND_60GHZ);
+  BandInfo band_info;
+  if (!GetBandInfo(wiphy_index, &band_info)) {
+    out_frequencies->reset();
+    return Status::ok();
+  }
+
+  if (band_info.band_60g.size() == 0)
+    out_frequencies->reset();
+  else
+    out_frequencies->emplace(
+      band_info.band_60g.begin(), band_info.band_60g.end());
+
+  return Status::ok();
+}
+
 Status Server::getDeviceWiphyCapabilities(
     const std::string& iface_name,
     std::optional<DeviceWiphyCapabilities>* capabilities) {
@@ -452,6 +470,11 @@ void Server::LogSupportedBands(uint32_t wiphy_index) {
   }
   LOG(INFO) << "6Ghz frequencies:"<< ss.str();
   ss.str("");
+
+  for (unsigned int i = 0; i < band_info.band_60g.size(); i++) {
+    ss << " " << band_info.band_60g[i];
+  }
+  LOG(INFO) << "60Ghz frequencies:"<< ss.str();
 }
 
 void Server::BroadcastClientInterfaceReady(
@@ -547,6 +570,12 @@ void Server::UpdateBandWiphyIndexMap(int wiphy_index) {
       && band_to_wiphy_index_map_.find(NL80211_BAND_6GHZ) == band_to_wiphy_index_map_.end()) {
     band_to_wiphy_index_map_[NL80211_BAND_6GHZ] = wiphy_index;
     LOG(INFO) << "add channel type " << NL80211_BAND_6GHZ
+               << " support at wiphy index: " << wiphy_index;
+  }
+  if (band_info.band_60g.size() != 0
+      && band_to_wiphy_index_map_.find(NL80211_BAND_60GHZ) == band_to_wiphy_index_map_.end()) {
+    band_to_wiphy_index_map_[NL80211_BAND_60GHZ] = wiphy_index;
+    LOG(INFO) << "add channel type " << NL80211_BAND_60GHZ
                << " support at wiphy index: " << wiphy_index;
   }
 }
