@@ -66,6 +66,9 @@ class Server : public android::net::wifi::nl80211::BnWificond {
   // Returns a vector of available frequencies for 6GHz channels.
   android::binder::Status getAvailable6gChannels(
       ::std::optional<::std::vector<int32_t>>* out_frequencies) override;
+  // Returns a vector of available frequencies for 60GHz channels.
+  android::binder::Status getAvailable60gChannels(
+      ::std::optional<::std::vector<int32_t>>* out_frequencies) override;
 
   android::binder::Status createApInterface(
       const std::string& iface_name,

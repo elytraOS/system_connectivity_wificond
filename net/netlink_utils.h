@@ -66,6 +66,8 @@ struct BandInfo {
   std::vector<uint32_t> band_dfs;
   // Frequencies for 6 GHz band.
   std::vector<uint32_t> band_6g;
+  // Frequencies for 60 GHz band.
+  std::vector<uint32_t> band_60g;
   // support for 802.11n
   bool is_80211n_supported;
   // support for 802.11ac
