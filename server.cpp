@@ -587,9 +587,9 @@ void Server::EraseBandWiphyIndexMap(int wiphy_index) {
       it != it_next;
       it = (it_next == it_end) ? it_next : it_next++) {
     if (it->second == wiphy_index) {
-      band_to_wiphy_index_map_.erase(it);
       LOG(INFO) << "remove channel type " << it->first
                  << " support at wiphy index " << it->second;
+      band_to_wiphy_index_map_.erase(it);
     }
   }
 }
