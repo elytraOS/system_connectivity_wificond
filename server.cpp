@@ -42,6 +42,7 @@ using android::wifi_system::InterfaceTool;
 using std::endl;
 using std::optional;
 using std::placeholders::_1;
+using std::placeholders::_2;
 using std::string;
 using std::stringstream;
 using std::unique_ptr;
@@ -61,7 +62,6 @@ Server::Server(unique_ptr<InterfaceTool> if_tool,
                NetlinkUtils* netlink_utils,
                ScanUtils* scan_utils)
     : base_ifname_(kBaseIfName),
-      base_wiphy_index_(0),
       if_tool_(std::move(if_tool)),
       netlink_utils_(netlink_utils),
       scan_utils_(scan_utils) {
@@ -103,7 +103,7 @@ Status Server::createApInterface(const std::string& iface_name,
     return Status::ok();  // Logging was done internally
   }
 
-  LOG(DEBUG) << "createApInterface: wiphy_index " << wiphy_index << " iface_name " << iface_name;
+  LOG(INFO) << "createApInterface: wiphy_index " << wiphy_index << " iface_name " << iface_name;
 
   unique_ptr<ApInterfaceImpl> ap_interface(new ApInterfaceImpl(
       interface.name,
@@ -113,7 +113,7 @@ Status Server::createApInterface(const std::string& iface_name,
   *created_interface = ap_interface->GetBinder();
   BroadcastApInterfaceReady(ap_interface->GetBinder());
   ap_interfaces_[iface_name] = std::move(ap_interface);
-  wiphy_indexes_[iface_name] = wiphy_index;
+  iface_to_wiphy_index_map_[iface_name] = wiphy_index;
 
   return Status::ok();
 }
@@ -128,10 +128,10 @@ Status Server::tearDownApInterface(const std::string& iface_name,
     *out_success = true;
   }
 
-  const auto iter_wi = wiphy_indexes_.find(iface_name);
-  if (iter_wi != wiphy_indexes_.end()) {
+  const auto iter_wi = iface_to_wiphy_index_map_.find(iface_name);
+  if (iter_wi != iface_to_wiphy_index_map_.end()) {
     LOG(DEBUG) << "tearDownApInterface: erasing wiphy_index for iface_name " << iface_name;
-    wiphy_indexes_.erase(iter_wi);
+    iface_to_wiphy_index_map_.erase(iter_wi);
   }
 
   return Status::ok();
@@ -146,7 +146,7 @@ Status Server::createClientInterface(const std::string& iface_name,
     return Status::ok();  // Logging was done internally
   }
 
-  LOG(DEBUG) << "createClientInterface: wiphy_index " << wiphy_index << " iface_name " << iface_name;
+  LOG(INFO) << "createClientInterface: wiphy_index " << wiphy_index << " iface_name " << iface_name;
 
   unique_ptr<ClientInterfaceImpl> client_interface(new ClientInterfaceImpl(
       wiphy_index,
@@ -159,7 +159,8 @@ Status Server::createClientInterface(const std::string& iface_name,
   *created_interface = client_interface->GetBinder();
   BroadcastClientInterfaceReady(client_interface->GetBinder());
   client_interfaces_[iface_name] = std::move(client_interface);
-  wiphy_indexes_[iface_name] = wiphy_index;
+  iface_to_wiphy_index_map_[iface_name] = wiphy_index;
+  UpdateBandWiphyIndexMap(wiphy_index);
 
   return Status::ok();
 }
@@ -174,10 +175,11 @@ Status Server::tearDownClientInterface(const std::string& iface_name,
     *out_success = true;
   }
 
-  const auto iter_wi = wiphy_indexes_.find(iface_name);
-  if (iter_wi != wiphy_indexes_.end()) {
+  const auto iter_wi = iface_to_wiphy_index_map_.find(iface_name);
+  if (iter_wi != iface_to_wiphy_index_map_.end()) {
     LOG(DEBUG) << "tearDownClientInterface: erasing wiphy_index for iface_name " << iface_name;
-    wiphy_indexes_.erase(iter_wi);
+    EraseBandWiphyIndexMap(iter_wi->second);
+    iface_to_wiphy_index_map_.erase(iter_wi);
   }
 
   return Status::ok();
@@ -196,10 +198,11 @@ Status Server::tearDownInterfaces() {
 
   MarkDownAllInterfaces();
 
-  for (auto& it : wiphy_indexes_) {
+  for (auto& it : iface_to_wiphy_index_map_) {
     netlink_utils_->UnsubscribeRegDomainChange(it.second);
+    EraseBandWiphyIndexMap(it.second);
   }
-  wiphy_indexes_.clear();
+  iface_to_wiphy_index_map_.clear();
 
   return Status::ok();
 }
@@ -233,7 +236,7 @@ status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
   for (const auto& iface : interfaces_) {
     ss << "Interface index: " << iface.index
        << ", name: " << iface.name
-       << ", wiphy index: " << wiphy_indexes_[iface.name]
+       << ", wiphy index: " << iface_to_wiphy_index_map_[iface.name]
        << ", mac address: "
        << LoggingUtils::GetMacString(iface.mac_address) << endl;
   }
@@ -253,6 +256,11 @@ status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
     iface.second->Dump(&ss);
   }
 
+  ss << "Channel Type / Wiphy Index Mapping:" << endl;
+  for (const auto& it : band_to_wiphy_index_map_) {
+    ss << "Channel type " << it.first << ": " << it.second << endl;
+  }
+
   if (!WriteStringToFd(ss.str(), fd)) {
     PLOG(ERROR) << "Failed to dump state to fd " << fd;
     return FAILED_TRANSACTION;
@@ -264,7 +272,7 @@ status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
 void Server::MarkDownAllInterfaces() {
   std::string iface_name;
 
-  for (auto& it : wiphy_indexes_) {
+  for (auto& it : iface_to_wiphy_index_map_) {
     iface_name = it.first;
     if_tool_->SetUpState(iface_name.c_str(), false);
   }
@@ -272,83 +280,96 @@ void Server::MarkDownAllInterfaces() {
 
 Status Server::getAvailable2gChannels(
     std::optional<vector<int32_t>>* out_frequencies) {
-  BandInfo band_info;
-  ScanCapabilities scan_capabilities_ignored;
-  WiphyFeatures wiphy_features_ignored;
 
-  if (!netlink_utils_->GetWiphyInfo(base_wiphy_index_, &band_info,
-                                    &scan_capabilities_ignored,
-                                    &wiphy_features_ignored)) {
-    LOG(ERROR) << "Failed to get wiphy info from kernel";
+  int wiphy_index = GetWiphyIndexFromBand(NL80211_BAND_2GHZ);
+  BandInfo band_info;
+
+  if (!GetBandInfo(wiphy_index, &band_info)) {
     out_frequencies->reset();
     return Status::ok();
   }
 
-  out_frequencies->emplace(band_info.band_2g.begin(), band_info.band_2g.end());
+  if (band_info.band_2g.size() == 0)
+    out_frequencies->reset();
+  else
+    out_frequencies->emplace(band_info.band_2g.begin(), band_info.band_2g.end());
   return Status::ok();
 }
 
 Status Server::getAvailable5gNonDFSChannels(
     std::optional<vector<int32_t>>* out_frequencies) {
+  int wiphy_index = GetWiphyIndexFromBand(NL80211_BAND_5GHZ);
   BandInfo band_info;
-  ScanCapabilities scan_capabilities_ignored;
-  WiphyFeatures wiphy_features_ignored;
-
-  if (!netlink_utils_->GetWiphyInfo(base_wiphy_index_, &band_info,
-                                    &scan_capabilities_ignored,
-                                    &wiphy_features_ignored)) {
-    LOG(ERROR) << "Failed to get wiphy info from kernel";
+  if (!GetBandInfo(wiphy_index, &band_info)) {
     out_frequencies->reset();
     return Status::ok();
   }
 
-  out_frequencies->emplace(band_info.band_5g.begin(), band_info.band_5g.end());
+  if (band_info.band_5g.size() == 0)
+    out_frequencies->reset();
+  else
+    out_frequencies->emplace(band_info.band_5g.begin(), band_info.band_5g.end());
   return Status::ok();
 }
 
 Status Server::getAvailableDFSChannels(
     std::optional<vector<int32_t>>* out_frequencies) {
+  int wiphy_index = GetWiphyIndexFromBand(NL80211_BAND_5GHZ);
   BandInfo band_info;
-  ScanCapabilities scan_capabilities_ignored;
-  WiphyFeatures wiphy_features_ignored;
-
-  if (!netlink_utils_->GetWiphyInfo(base_wiphy_index_, &band_info,
-                                    &scan_capabilities_ignored,
-                                    &wiphy_features_ignored)) {
-    LOG(ERROR) << "Failed to get wiphy info from kernel";
+  if (!GetBandInfo(wiphy_index, &band_info)) {
     out_frequencies->reset();
     return Status::ok();
   }
 
-  out_frequencies->emplace(band_info.band_dfs.begin(),
+  if (band_info.band_dfs.size() == 0)
+    out_frequencies->reset();
+  else
+    out_frequencies->emplace(band_info.band_dfs.begin(),
                            band_info.band_dfs.end());
   return Status::ok();
 }
 
 Status Server::getAvailable6gChannels(
     std::optional<vector<int32_t>>* out_frequencies) {
+  int wiphy_index = GetWiphyIndexFromBand(NL80211_BAND_6GHZ);
   BandInfo band_info;
-  ScanCapabilities scan_capabilities_ignored;
-  WiphyFeatures wiphy_features_ignored;
-
-  if (!netlink_utils_->GetWiphyInfo(base_wiphy_index_, &band_info,
-                                    &scan_capabilities_ignored,
-                                    &wiphy_features_ignored)) {
-    LOG(ERROR) << "Failed to get wiphy info from kernel";
+  if (!GetBandInfo(wiphy_index, &band_info)) {
     out_frequencies->reset();
     return Status::ok();
   }
 
-  out_frequencies->emplace(band_info.band_6g.begin(), band_info.band_6g.end());
+  if (band_info.band_6g.size() == 0)
+    out_frequencies->reset();
+  else
+    out_frequencies->emplace(band_info.band_6g.begin(), band_info.band_6g.end());
+  return Status::ok();
+}
+
+Status Server::getAvailable60gChannels(
+    std::optional<vector<int32_t>>* out_frequencies) {
+  int wiphy_index = GetWiphyIndexFromBand(NL80211_BAND_60GHZ);
+  BandInfo band_info;
+  if (!GetBandInfo(wiphy_index, &band_info)) {
+    out_frequencies->reset();
+    return Status::ok();
+  }
+
+  if (band_info.band_60g.size() == 0)
+    out_frequencies->reset();
+  else
+    out_frequencies->emplace(
+      band_info.band_60g.begin(), band_info.band_60g.end());
+
   return Status::ok();
 }
 
 Status Server::getDeviceWiphyCapabilities(
     const std::string& iface_name,
     std::optional<DeviceWiphyCapabilities>* capabilities) {
-  uint32_t wiphy_index;
-  if (!netlink_utils_->GetWiphyIndex(&wiphy_index, iface_name)) {
-    LOG(ERROR) << "Failed to get wiphy index";
+  int wiphy_index = FindWiphyIndex(iface_name);
+
+  if (wiphy_index == -1) {
+    LOG(ERROR) << "Failed to find iface_name " << iface_name;
     capabilities = nullptr;
     return Status::ok();
   }
@@ -388,19 +409,15 @@ bool Server::SetupInterface(const std::string& iface_name,
 
   netlink_utils_->SubscribeRegDomainChange(
           *wiphy_index,
-          std::bind(&Server::OnRegDomainChanged,
-          this,
-          _1));
+           std::bind(&Server::OnRegDomainChanged,
+           this,
+           _1,
+           _2));
 
   interfaces_.clear();
   if (!netlink_utils_->GetInterfaces(*wiphy_index, &interfaces_)) {
     LOG(ERROR) << "Failed to get interfaces info from kernel for iface_name " << iface_name << " wiphy_index " << *wiphy_index;
     return false;
-  }
-
-  if (iface_name == base_ifname_) {
-    base_wiphy_index_ = *wiphy_index;
-    LOG(INFO) << "setting base_wiphy_index_ to " << base_wiphy_index_;
   }
 
   for (const auto& iface : interfaces_) {
@@ -414,20 +431,20 @@ bool Server::SetupInterface(const std::string& iface_name,
   return false;
 }
 
-void Server::OnRegDomainChanged(std::string& country_code) {
+void Server::OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code) {
   if (country_code.empty()) {
     LOG(INFO) << "Regulatory domain changed";
   } else {
     LOG(INFO) << "Regulatory domain changed to country: " << country_code;
   }
-  LogSupportedBands();
+  LogSupportedBands(wiphy_index);
 }
 
-void Server::LogSupportedBands() {
+void Server::LogSupportedBands(uint32_t wiphy_index) {
   BandInfo band_info;
   ScanCapabilities scan_capabilities;
   WiphyFeatures wiphy_features;
-  netlink_utils_->GetWiphyInfo(base_wiphy_index_,
+  netlink_utils_->GetWiphyInfo(wiphy_index,
                                &band_info,
                                &scan_capabilities,
                                &wiphy_features);
@@ -449,11 +466,18 @@ void Server::LogSupportedBands() {
     ss << " " << band_info.band_dfs[i];
   }
   LOG(INFO) << "5Ghz DFS frequencies:"<< ss.str();
+  ss.str("");
 
   for (unsigned int i = 0; i < band_info.band_6g.size(); i++) {
     ss << " " << band_info.band_6g[i];
   }
   LOG(INFO) << "6Ghz frequencies:"<< ss.str();
+  ss.str("");
+
+  for (unsigned int i = 0; i < band_info.band_60g.size(); i++) {
+    ss << " " << band_info.band_60g[i];
+  }
+  LOG(INFO) << "60Ghz frequencies:"<< ss.str();
 }
 
 void Server::BroadcastClientInterfaceReady(
@@ -481,6 +505,95 @@ void Server::BroadcastApInterfaceTornDown(
     sp<IApInterface> network_interface) {
   for (auto& it : interface_event_callbacks_) {
     it->OnApTorndownEvent(network_interface);
+  }
+}
+
+int Server::FindWiphyIndex(
+    const std::string& iface_name) {
+  int wiphy_index = -1;
+
+  for (auto& it : iface_to_wiphy_index_map_) {
+    if (it.first == iface_name) {
+      wiphy_index = it.second;
+      break;
+    }
+  }
+
+  return wiphy_index;
+}
+
+bool Server::GetBandInfo(
+    int wiphy_index,
+    BandInfo* band_info) {
+
+  if (wiphy_index == -1) return false;
+
+  ScanCapabilities scan_capabilities_ignored;
+  WiphyFeatures wiphy_features_ignored;
+
+  if (!netlink_utils_->GetWiphyInfo(wiphy_index, band_info,
+                                    &scan_capabilities_ignored,
+                                    &wiphy_features_ignored)) {
+    LOG(ERROR) << "Failed to get wiphy index " << wiphy_index << " info from kernel";
+    return false;
+  }
+
+  return true;
+}
+
+int Server::GetWiphyIndexFromBand(int band) {
+    auto iter = band_to_wiphy_index_map_.find(band);
+    return (iter != band_to_wiphy_index_map_.end()) ? iter->second : -1;
+}
+
+void Server::UpdateBandWiphyIndexMap(int wiphy_index) {
+  BandInfo band_info;
+  GetBandInfo(wiphy_index, &band_info);
+  if (!GetBandInfo(wiphy_index, &band_info)) return;
+
+  if (band_info.band_2g.size() != 0
+      && band_to_wiphy_index_map_.find(NL80211_BAND_2GHZ) == band_to_wiphy_index_map_.end()) {
+    band_to_wiphy_index_map_[NL80211_BAND_2GHZ] = wiphy_index;
+    LOG(INFO) << "add channel type " << NL80211_BAND_2GHZ
+               << " support at wiphy index: " << wiphy_index;
+  }
+  if (band_info.band_5g.size() != 0
+      && band_to_wiphy_index_map_.find(NL80211_BAND_5GHZ) == band_to_wiphy_index_map_.end()) {
+    band_to_wiphy_index_map_[NL80211_BAND_5GHZ] = wiphy_index;
+    LOG(INFO) << "add channel type " << NL80211_BAND_5GHZ
+               << " support at wiphy index: " << wiphy_index;
+  }
+  if (band_info.band_dfs.size() != 0
+      && band_to_wiphy_index_map_.find(NL80211_BAND_5GHZ) == band_to_wiphy_index_map_.end()) {
+    band_to_wiphy_index_map_[NL80211_BAND_5GHZ] = wiphy_index;
+    LOG(INFO) << "add channel type " << NL80211_BAND_5GHZ
+               << " support at wiphy index: " << wiphy_index;
+  }
+  if (band_info.band_6g.size() != 0
+      && band_to_wiphy_index_map_.find(NL80211_BAND_6GHZ) == band_to_wiphy_index_map_.end()) {
+    band_to_wiphy_index_map_[NL80211_BAND_6GHZ] = wiphy_index;
+    LOG(INFO) << "add channel type " << NL80211_BAND_6GHZ
+               << " support at wiphy index: " << wiphy_index;
+  }
+  if (band_info.band_60g.size() != 0
+      && band_to_wiphy_index_map_.find(NL80211_BAND_60GHZ) == band_to_wiphy_index_map_.end()) {
+    band_to_wiphy_index_map_[NL80211_BAND_60GHZ] = wiphy_index;
+    LOG(INFO) << "add channel type " << NL80211_BAND_60GHZ
+               << " support at wiphy index: " << wiphy_index;
+  }
+}
+
+void Server::EraseBandWiphyIndexMap(int wiphy_index) {
+  for (auto it_end = band_to_wiphy_index_map_.end(),
+      it_next = band_to_wiphy_index_map_.begin(),
+      it = (it_next == it_end) ? it_next : it_next++;
+      it != it_next;
+      it = (it_next == it_end) ? it_next : it_next++) {
+    if (it->second == wiphy_index) {
+      LOG(INFO) << "remove channel type " << it->first
+                 << " support at wiphy index " << it->second;
+      band_to_wiphy_index_map_.erase(it);
+    }
   }
 }
 
