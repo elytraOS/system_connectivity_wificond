@@ -52,7 +52,7 @@ uint32_t k2GHzFrequencyUpperBound = 2500;
 uint32_t k5GHzFrequencyLowerBound = 5000;
 // This upper bound will exclude any 5.9Ghz channels which belong to 802.11p
 // for "vehicular communication systems".
-uint32_t k5GHzFrequencyUpperBound = 5850;
+uint32_t k5GHzFrequencyUpperBound = 5885;
 
 uint32_t k6GHzFrequencyLowerBound = 5925;
 uint32_t k6GHzFrequencyUpperBound = 7125;
