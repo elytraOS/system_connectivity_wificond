@@ -589,7 +589,7 @@ void NetlinkManager::OnRegChangeEvent(unique_ptr<const NL80211Packet> packet) {
   }
 
   for (const auto& handler : on_reg_domain_changed_handler_) {
-    handler.second(country_code);
+    handler.second(handler.first, country_code);
   }
 }
 

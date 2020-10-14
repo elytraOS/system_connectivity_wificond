@@ -58,6 +58,9 @@ uint32_t k5GHzFrequencyUpperBound = 5865;
 uint32_t k6GHzFrequencyLowerBound = 5925;
 uint32_t k6GHzFrequencyUpperBound = 7125;
 
+uint32_t k60GHzFrequencyLowerBound = 58320;
+uint32_t k60GHzFrequencyUpperBound = 70200;
+
 constexpr uint8_t kHtMcsSetNumByte = 16;
 constexpr uint8_t kVhtMcsSetNumByte = 8;
 constexpr uint8_t kHeMcsSetNumByteMin = 4;
@@ -540,6 +543,9 @@ void NetlinkUtils::handleBandFreqAttributes(const NL80211NestedAttr& freqs_attr,
     } else if (frequency_value > k6GHzFrequencyLowerBound &&
         frequency_value < k6GHzFrequencyUpperBound) {
       out_band_info->band_6g.push_back(frequency_value);
+    } else if (frequency_value >= k60GHzFrequencyLowerBound &&
+        frequency_value < k60GHzFrequencyUpperBound) {
+      out_band_info->band_60g.push_back(frequency_value);
     }
   }
 }
