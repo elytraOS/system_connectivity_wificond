@@ -74,6 +74,7 @@ ScannerImpl::ScannerImpl(uint32_t interface_index,
       scan_started_(false),
       pno_scan_started_(false),
       nodev_counter_(0),
+      enetdown_counter_(0),
       interface_index_(interface_index),
       scan_capabilities_(scan_capabilities),
       wiphy_features_(wiphy_features),
@@ -179,12 +180,19 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
         nodev_counter_ ++;
         LOG(WARNING) << "Scan failed with error=nodev. counter=" << nodev_counter_;
     }
-    CHECK(error_code != ENODEV || nodev_counter_ <= 3)
-        << "Driver is in a bad state, restarting wificond";
+
+    if (error_code == ENETDOWN) {
+        enetdown_counter_++;
+        LOG(WARNING) << "Scan failed with error=iface down. counter=" << enetdown_counter_;
+    }
+    CHECK((error_code != ENODEV || nodev_counter_ <= 3) &&
+          (error_code != ENETDOWN || enetdown_counter_ <= 10))
+          << "Driver is in a bad state, restarting wificond";
     *out_success = false;
     return Status::ok();
   }
   nodev_counter_ = 0;
+  enetdown_counter_ = 0;
   scan_started_ = true;
   *out_success = true;
   return Status::ok();
@@ -291,9 +299,15 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
         nodev_counter_ ++;
         LOG(WARNING) << "Pno Scan failed with error=nodev. counter=" << nodev_counter_;
     }
+    if (error_code == ENETDOWN) {
+        enetdown_counter_++;
+        LOG(WARNING) << "Pno Scan failed with error=iface down. counter= "
+                     << enetdown_counter_;
+    }
     LOG(ERROR) << "Failed to start pno scan";
-    CHECK(error_code != ENODEV || nodev_counter_ <= 3)
-        << "Driver is in a bad state, restarting wificond";
+    CHECK((error_code != ENODEV || nodev_counter_ <= 3) &&
+          (error_code != ENETDOWN || enetdown_counter_ <= 10))
+          << "Driver is in a bad state, restarting wificond";
     return false;
   }
   string freq_string;
@@ -307,6 +321,7 @@ bool ScannerImpl::StartPnoScanDefault(const PnoSettings& pno_settings) {
   }
   LOG(INFO) << "Pno scan started " << freq_string;
   nodev_counter_ = 0;
+  enetdown_counter_ = 0;
   pno_scan_started_ = true;
   return true;
 }
