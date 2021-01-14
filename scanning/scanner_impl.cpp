@@ -58,8 +58,9 @@ bool IsScanTypeSupported(int scan_type, const WiphyFeatures& wiphy_features) {
 }
 
 constexpr const int kPercentNetworksWithFreq = 30;
-constexpr const int kPnoScanDefaultFreqs[] = {2412, 2417, 2422, 2427, 2432, 2437, 2447, 2452,
-    2457, 2462, 5180, 5200, 5220, 5240, 5745, 5765, 5785, 5805};
+constexpr const int32_t kPnoScanDefaultFreqs2G[] = {2412, 2417, 2422, 2427, 2432, 2437, 2447, 2452,
+    2457, 2462};
+constexpr const int32_t kPnoScanDefaultFreqs5G[] = {5180, 5200, 5220, 5240, 5745, 5765, 5785, 5805};
 } // namespace
 
 namespace android {
@@ -240,7 +241,20 @@ void ScannerImpl::ParsePnoSettings(const PnoSettings& pno_settings,
   // networks don't have frequency data.
   if (unique_frequencies.size() > 0 && num_networks_no_freqs * 100 / match_ssids->size()
       > kPercentNetworksWithFreq) {
-    unique_frequencies.insert(std::begin(kPnoScanDefaultFreqs), std::end(kPnoScanDefaultFreqs));
+    // Filter out frequencies not supported by chip.
+    const auto band_2g = client_interface_->GetBandInfo().band_2g;
+    for (const auto frequency : kPnoScanDefaultFreqs2G) {
+      if (std::find(band_2g.begin(), band_2g.end(), frequency) != band_2g.end()) {
+        unique_frequencies.insert(frequency);
+      }
+    }
+    // Note: kPnoScanDefaultFreqs5G doesn't contain DFS frequencies.
+    const auto band_5g = client_interface_->GetBandInfo().band_5g;
+    for (const auto frequency : kPnoScanDefaultFreqs5G) {
+      if (std::find(band_5g.begin(), band_5g.end(), frequency) != band_5g.end()) {
+        unique_frequencies.insert(frequency);
+      }
+    }
   }
   for (const auto& frequency : unique_frequencies) {
     freqs->push_back(frequency);
