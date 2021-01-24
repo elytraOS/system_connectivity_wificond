@@ -125,6 +125,7 @@ class Server : public android::net::wifi::nl80211::BnWificond {
   int GetWiphyIndexFromBand(int band);
   void UpdateBandWiphyIndexMap(int wiphy_index);
   void EraseBandWiphyIndexMap(int wiphy_index);
+  bool hasNoIfaceForWiphyIndex(int wiphy_index);
 
   const std::string base_ifname_;
   const std::unique_ptr<wifi_system::InterfaceTool> if_tool_;

@@ -16,6 +16,7 @@
 
 #include "wificond/server.h"
 
+#include <algorithm> // for std::find_if
 #include <sstream>
 
 #include <android-base/file.h>
@@ -137,6 +138,14 @@ Status Server::tearDownApInterface(const std::string& iface_name,
   return Status::ok();
 }
 
+bool Server::hasNoIfaceForWiphyIndex(int wiphy_index) {
+  return std::find_if(
+      iface_to_wiphy_index_map_.begin(),
+      iface_to_wiphy_index_map_.end(),
+      [wiphy_index](const auto& kv) { return kv.second == wiphy_index; })
+      == iface_to_wiphy_index_map_.end();
+}
+
 Status Server::createClientInterface(const std::string& iface_name,
                                      sp<IClientInterface>* created_interface) {
   InterfaceInfo interface;
@@ -159,8 +168,10 @@ Status Server::createClientInterface(const std::string& iface_name,
   *created_interface = client_interface->GetBinder();
   BroadcastClientInterfaceReady(client_interface->GetBinder());
   client_interfaces_[iface_name] = std::move(client_interface);
+  if (hasNoIfaceForWiphyIndex(wiphy_index)) {
+    UpdateBandWiphyIndexMap(wiphy_index);
+  }
   iface_to_wiphy_index_map_[iface_name] = wiphy_index;
-  UpdateBandWiphyIndexMap(wiphy_index);
 
   return Status::ok();
 }
@@ -177,9 +188,12 @@ Status Server::tearDownClientInterface(const std::string& iface_name,
 
   const auto iter_wi = iface_to_wiphy_index_map_.find(iface_name);
   if (iter_wi != iface_to_wiphy_index_map_.end()) {
+    int wiphy_index = iter_wi->second;
     LOG(DEBUG) << "tearDownClientInterface: erasing wiphy_index for iface_name " << iface_name;
-    EraseBandWiphyIndexMap(iter_wi->second);
     iface_to_wiphy_index_map_.erase(iter_wi);
+    if (hasNoIfaceForWiphyIndex(wiphy_index)) {
+      EraseBandWiphyIndexMap(wiphy_index);
+    }
   }
 
   return Status::ok();
@@ -548,7 +562,6 @@ int Server::GetWiphyIndexFromBand(int band) {
 
 void Server::UpdateBandWiphyIndexMap(int wiphy_index) {
   BandInfo band_info;
-  GetBandInfo(wiphy_index, &band_info);
   if (!GetBandInfo(wiphy_index, &band_info)) return;
 
   if (band_info.band_2g.size() != 0
@@ -584,15 +597,18 @@ void Server::UpdateBandWiphyIndexMap(int wiphy_index) {
 }
 
 void Server::EraseBandWiphyIndexMap(int wiphy_index) {
-  for (auto it_end = band_to_wiphy_index_map_.end(),
-      it_next = band_to_wiphy_index_map_.begin(),
-      it = (it_next == it_end) ? it_next : it_next++;
-      it != it_next;
-      it = (it_next == it_end) ? it_next : it_next++) {
+  for (auto it = band_to_wiphy_index_map_.begin();
+      // end() is computed every iteration since erase() could invalidate it
+      it != band_to_wiphy_index_map_.end();
+      /* no increment */ ) {
     if (it->second == wiphy_index) {
       LOG(INFO) << "remove channel type " << it->first
                  << " support at wiphy index " << it->second;
-      band_to_wiphy_index_map_.erase(it);
+      // erase returns iterator to element following erased element, or end() if the last element
+      // was erased
+      it = band_to_wiphy_index_map_.erase(it);
+    } else {
+      ++it;
     }
   }
 }
