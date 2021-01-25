@@ -35,14 +35,18 @@ namespace wificond {
 
 struct InterfaceInfo {
   InterfaceInfo() = default;
-  InterfaceInfo(uint32_t index,
+  InterfaceInfo(uint32_t if_index,
+                uint32_t wiphy_index,
                 const std::string& name,
                 const std::array<uint8_t, ETH_ALEN>& mac_address)
-      : index(index),
+      : if_index(if_index),
+        wiphy_index(wiphy_index),
         name(name),
         mac_address(mac_address) {}
   // Index of this interface.
-  uint32_t index;
+  uint32_t if_index;
+  // Wiphy Index of this interface.
+  uint32_t wiphy_index;
   // Name of this interface.
   std::string name;
   // MAC address of this interface.
