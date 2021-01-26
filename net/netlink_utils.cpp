@@ -137,6 +137,10 @@ bool NetlinkUtils::GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list,
   get_wiphy.AddFlag(NLM_F_DUMP);
   if (!iface_name.empty()) {
     int ifindex = if_nametoindex(iface_name.c_str());
+    if (ifindex == 0) {
+      PLOG(ERROR) << "Can't get " << iface_name << " index";
+      return false;
+    }
     get_wiphy.AddAttribute(NL80211Attr<uint32_t>(NL80211_ATTR_IFINDEX, ifindex));
   }
   vector<unique_ptr<const NL80211Packet>> response;
