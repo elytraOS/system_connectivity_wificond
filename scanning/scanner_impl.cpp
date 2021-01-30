@@ -175,7 +175,7 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
 
   int error_code = 0;
   if (!scan_utils_->Scan(interface_index_, request_random_mac, scan_type,
-                         ssids, freqs, &error_code)) {
+                         scan_settings.enable_6ghz_rnr_, ssids, freqs, &error_code)) {
     if (error_code == ENODEV) {
         nodev_counter_ ++;
         LOG(WARNING) << "Scan failed with error=nodev. counter=" << nodev_counter_;
