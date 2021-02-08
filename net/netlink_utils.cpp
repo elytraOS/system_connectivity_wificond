@@ -261,7 +261,7 @@ bool NetlinkUtils::GetInterfaces(uint32_t wiphy_index,
       continue;
     }
 
-    interface_info->emplace_back(if_index, if_name, if_mac_addr);
+    interface_info->emplace_back(if_index, wiphy_index, if_name, if_mac_addr);
   }
 
   return true;

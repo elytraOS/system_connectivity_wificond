@@ -140,8 +140,8 @@ class Server : public android::net::wifi::nl80211::BnWificond {
   std::vector<android::sp<android::net::wifi::nl80211::IInterfaceEventCallback>>
       interface_event_callbacks_;
 
-  // Cached interface list from kernel.
-  std::vector<InterfaceInfo> interfaces_;
+  // Cached interface list from kernel for dumping.
+  std::vector<InterfaceInfo> debug_interfaces_;
 
   DISALLOW_COPY_AND_ASSIGN(Server);
 };

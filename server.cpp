@@ -108,7 +108,7 @@ Status Server::createApInterface(const std::string& iface_name,
 
   unique_ptr<ApInterfaceImpl> ap_interface(new ApInterfaceImpl(
       interface.name,
-      interface.index,
+      interface.if_index,
       netlink_utils_,
       if_tool_.get()));
   *created_interface = ap_interface->GetBinder();
@@ -160,7 +160,7 @@ Status Server::createClientInterface(const std::string& iface_name,
   unique_ptr<ClientInterfaceImpl> client_interface(new ClientInterfaceImpl(
       wiphy_index,
       interface.name,
-      interface.index,
+      interface.if_index,
       interface.mac_address,
       if_tool_.get(),
       netlink_utils_,
@@ -251,10 +251,10 @@ status_t Server::dump(int fd, const Vector<String16>& /*args*/) {
 
   stringstream ss;
   ss << "Cached interfaces list from kernel message: " << endl;
-  for (const auto& iface : interfaces_) {
-    ss << "Interface index: " << iface.index
+  for (const auto& iface : debug_interfaces_) {
+    ss << "Interface index: " << iface.if_index
        << ", name: " << iface.name
-       << ", wiphy index: " << iface_to_wiphy_index_map_[iface.name]
+       << ", wiphy index: " << iface.wiphy_index
        << ", mac address: "
        << LoggingUtils::GetMacString(iface.mac_address) << endl;
   }
@@ -432,13 +432,13 @@ bool Server::SetupInterface(const std::string& iface_name,
            _1,
            _2));
 
-  interfaces_.clear();
-  if (!netlink_utils_->GetInterfaces(*wiphy_index, &interfaces_)) {
+  debug_interfaces_.clear();
+  if (!netlink_utils_->GetInterfaces(*wiphy_index, &debug_interfaces_)) {
     LOG(ERROR) << "Failed to get interfaces info from kernel for iface_name " << iface_name << " wiphy_index " << *wiphy_index;
     return false;
   }
 
-  for (const auto& iface : interfaces_) {
+  for (const auto& iface : debug_interfaces_) {
     if (iface.name == iface_name) {
       *interface = iface;
       return true;
@@ -565,7 +565,7 @@ int Server::GetWiphyIndexFromBand(int band) {
 }
 
 void Server::UpdateBandWiphyIndexMap(int wiphy_index) {
-  LOG(INFO) << "UpdateBandWiphyIndexMap for wiphy_index " << wiphy_index;
+  LOG(DEBUG) << "UpdateBandWiphyIndexMap for wiphy_index " << wiphy_index;
   BandInfo band_info;
   if (!GetBandInfo(wiphy_index, &band_info)) return;
 
@@ -574,50 +574,35 @@ void Server::UpdateBandWiphyIndexMap(int wiphy_index) {
     band_to_wiphy_index_map_[NL80211_BAND_2GHZ] = wiphy_index;
     LOG(INFO) << "add channel type " << NL80211_BAND_2GHZ
                << " support at wiphy index: " << wiphy_index;
-  } else {
-    LOG(INFO) << "channel type " << NL80211_BAND_2GHZ
-               << " not supported at wiphy index: " << wiphy_index;
   }
   if (band_info.band_5g.size() != 0
       && band_to_wiphy_index_map_.find(NL80211_BAND_5GHZ) == band_to_wiphy_index_map_.end()) {
     band_to_wiphy_index_map_[NL80211_BAND_5GHZ] = wiphy_index;
     LOG(INFO) << "add channel type " << NL80211_BAND_5GHZ
                << " support at wiphy index: " << wiphy_index;
-  } else {
-    LOG(INFO) << "channel type " << NL80211_BAND_5GHZ
-               << " not supported at wiphy index: " << wiphy_index;
   }
   if (band_info.band_dfs.size() != 0
       && band_to_wiphy_index_map_.find(NL80211_BAND_5GHZ) == band_to_wiphy_index_map_.end()) {
     band_to_wiphy_index_map_[NL80211_BAND_5GHZ] = wiphy_index;
     LOG(INFO) << "add channel type " << NL80211_BAND_5GHZ
                << " support at wiphy index: " << wiphy_index;
-  } else {
-    LOG(INFO) << "channel type " << NL80211_BAND_5GHZ
-               << " not supported at wiphy index: " << wiphy_index;
   }
   if (band_info.band_6g.size() != 0
       && band_to_wiphy_index_map_.find(NL80211_BAND_6GHZ) == band_to_wiphy_index_map_.end()) {
     band_to_wiphy_index_map_[NL80211_BAND_6GHZ] = wiphy_index;
     LOG(INFO) << "add channel type " << NL80211_BAND_6GHZ
                << " support at wiphy index: " << wiphy_index;
-  } else {
-    LOG(INFO) << "channel type " << NL80211_BAND_6GHZ
-               << " not supported at wiphy index: " << wiphy_index;
   }
   if (band_info.band_60g.size() != 0
       && band_to_wiphy_index_map_.find(NL80211_BAND_60GHZ) == band_to_wiphy_index_map_.end()) {
     band_to_wiphy_index_map_[NL80211_BAND_60GHZ] = wiphy_index;
     LOG(INFO) << "add channel type " << NL80211_BAND_60GHZ
                << " support at wiphy index: " << wiphy_index;
-  } else {
-    LOG(INFO) << "channel type " << NL80211_BAND_60GHZ
-               << " not supported at wiphy index: " << wiphy_index;
   }
 }
 
 void Server::EraseBandWiphyIndexMap(int wiphy_index) {
-  LOG(INFO) << "EraseBandWiphyIndexMap for wiphy_index " << wiphy_index;
+  LOG(DEBUG) << "EraseBandWiphyIndexMap for wiphy_index " << wiphy_index;
   for (auto it = band_to_wiphy_index_map_.begin();
       // end() is computed every iteration since erase() could invalidate it
       it != band_to_wiphy_index_map_.end();

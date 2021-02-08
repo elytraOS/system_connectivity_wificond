@@ -54,6 +54,7 @@ const char kFateInterfaceNameInvalid[] = "testif-invalid";
 const uint32_t kFakeInterfaceIndex = 34;
 const uint32_t kFakeInterfaceIndex1 = 36;
 const uint32_t kFakeInterfaceIndexP2p = 36;
+const uint32_t kFakeWiphyIndex = 0;
 const std::array<uint8_t, ETH_ALEN> kFakeInterfaceMacAddress = {0x45, 0x54, 0xad, 0x67, 0x98, 0xf6};
 const std::array<uint8_t, ETH_ALEN> kFakeInterfaceMacAddress1 = {0x05, 0x04, 0xef, 0x27, 0x12, 0xff};
 const std::array<uint8_t, ETH_ALEN> kFakeInterfaceMacAddressP2p = {0x15, 0x24, 0xef, 0x27, 0x12, 0xff};
@@ -117,16 +118,19 @@ class ServerTest : public ::testing::Test {
       // Client interface
       InterfaceInfo(
           kFakeInterfaceIndex,
+          kFakeWiphyIndex,
           std::string(kFakeInterfaceName),
           std::array<uint8_t, ETH_ALEN>(kFakeInterfaceMacAddress)),
       // AP Interface
       InterfaceInfo(
           kFakeInterfaceIndex1,
+          kFakeWiphyIndex,
           std::string(kFakeInterfaceName1),
           std::array<uint8_t, ETH_ALEN>(kFakeInterfaceMacAddress1)),
       // p2p interface
       InterfaceInfo(
           kFakeInterfaceIndexP2p,
+          kFakeWiphyIndex,
           std::string(kFakeInterfaceNameP2p),
           std::array<uint8_t, ETH_ALEN>(kFakeInterfaceMacAddressP2p))
   };
