@@ -158,15 +158,21 @@ Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
   vector<vector<uint8_t>> ssids = {{}};
 
   vector<vector<uint8_t>> skipped_scan_ssids;
+  vector<vector<uint8_t>> skipped_long_ssids;
   for (auto& network : scan_settings.hidden_networks_) {
     if (ssids.size() + 1 > scan_capabilities_.max_num_scan_ssids) {
       skipped_scan_ssids.emplace_back(network.ssid_);
       continue;
     }
+    if (network.ssid_.size() > 32) {
+        skipped_long_ssids.emplace_back(network.ssid_);
+        continue;
+    }
     ssids.push_back(network.ssid_);
   }
 
   LogSsidList(skipped_scan_ssids, "Skip scan ssid for single scan");
+  LogSsidList(skipped_long_ssids, "Skip too long ssid");
 
   vector<uint32_t> freqs;
   for (auto& channel : scan_settings.channel_settings_) {
