@@ -67,7 +67,9 @@ cc_binary {
     include_dirs: ["system/security/keystore/include"],
 
     shared_libs: [
+        "android.system.keystore2-ndk_platform",
         "libbinder",
+        "libbinder_ndk",
         "libbase",
         "libcrypto",
         "libcutils",
