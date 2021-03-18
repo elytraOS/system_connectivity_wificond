@@ -521,7 +521,8 @@ void NetlinkManager::BroadcastHandler(unique_ptr<const NL80211Packet> packet) {
       OnMlmeEvent(std::move(packet));
      return;
   }
-  if (command == NL80211_CMD_REG_CHANGE) {
+  if (command == NL80211_CMD_REG_CHANGE ||
+      command == NL80211_CMD_WIPHY_REG_CHANGE) {
     OnRegChangeEvent(std::move(packet));
     return;
   }
