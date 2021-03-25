@@ -146,7 +146,7 @@ bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index,
     return false;
   }
   if (response.empty()) {
-    LOG(DEBUG) << "No wiphy is found";
+    LOG(INFO) << "No wiphy is found";
     return false;
   }
   for (auto& packet : response) {
