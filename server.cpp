@@ -37,6 +37,7 @@ using android::net::wifi::nl80211::IApInterface;
 using android::net::wifi::nl80211::IClientInterface;
 using android::net::wifi::nl80211::IInterfaceEventCallback;
 using android::net::wifi::nl80211::DeviceWiphyCapabilities;
+using android::net::wifi::nl80211::IWificondEventCallback;
 using android::wifi_system::InterfaceTool;
 
 using std::endl;
@@ -63,6 +64,50 @@ Server::Server(unique_ptr<InterfaceTool> if_tool,
     : if_tool_(std::move(if_tool)),
       netlink_utils_(netlink_utils),
       scan_utils_(scan_utils) {
+}
+
+Status Server::registerWificondEventCallback(const sp<IWificondEventCallback>& callback) {
+  uint32_t wiphy_index;
+  for (const auto& it : wificond_event_callbacks_) {
+    if (IInterface::asBinder(callback) == IInterface::asBinder(it)) {
+      LOG(WARNING) << "Ignore duplicate wificond event callback registration";
+      return Status::ok();
+    }
+  }
+  // TODO: It may need to handle multi-chips case to get multi-wiphy index and
+  // register corresponding callback.
+  if (netlink_utils_->GetWiphyIndex(&wiphy_index)) {
+    LOG(INFO) << "SubscribeRegDomainChange on wiphy_index:" << wiphy_index;
+    netlink_utils_->SubscribeRegDomainChange(
+          wiphy_index,
+           std::bind(&Server::OnRegDomainChanged,
+           this,
+           _1,
+           _2));
+  }
+  LOG(INFO) << "New wificond event callback registered";
+  wificond_event_callbacks_.push_back(callback);
+  return Status::ok();
+}
+
+Status Server::unregisterWificondEventCallback(const sp<IWificondEventCallback>& callback) {
+  uint32_t wiphy_index;
+  if (netlink_utils_->GetWiphyIndex(&wiphy_index)) {
+    LOG(INFO) << "UnSubscribeRegDomainChange on wiphy_index:" << wiphy_index;
+    netlink_utils_->UnsubscribeRegDomainChange(wiphy_index);
+  }
+  for (auto it = wificond_event_callbacks_.begin();
+       it != wificond_event_callbacks_.end();
+       it++) {
+    if (IInterface::asBinder(callback) == IInterface::asBinder(*it)) {
+      wificond_event_callbacks_.erase(it);
+      LOG(INFO) << "Unregister interface event callback";
+      return Status::ok();
+    }
+  }
+  LOG(WARNING) << "Failed to find registered wificond event callback"
+               << " to unregister";
+  return Status::ok();
 }
 
 Status Server::RegisterCallback(const sp<IInterfaceEventCallback>& callback) {
@@ -214,7 +259,6 @@ Status Server::tearDownInterfaces() {
   MarkDownAllInterfaces();
 
   for (auto& it : iface_to_wiphy_index_map_) {
-    netlink_utils_->UnsubscribeRegDomainChange(it.second);
     EraseBandWiphyIndexMap(it.second);
   }
   iface_to_wiphy_index_map_.clear();
@@ -422,13 +466,6 @@ bool Server::SetupInterface(const std::string& iface_name,
     return false;
   }
 
-  netlink_utils_->SubscribeRegDomainChange(
-          *wiphy_index,
-           std::bind(&Server::OnRegDomainChanged,
-           this,
-           _1,
-           _2));
-
   debug_interfaces_.clear();
   if (!netlink_utils_->GetInterfaces(*wiphy_index, &debug_interfaces_)) {
     LOG(ERROR) << "Failed to get interfaces info from kernel for iface_name " << iface_name << " wiphy_index " << *wiphy_index;
@@ -451,6 +488,7 @@ void Server::OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code)
     LOG(INFO) << "Regulatory domain changed";
   } else {
     LOG(INFO) << "Regulatory domain changed to country: " << country_code;
+    BroadcastRegDomainChanged(country_code);
   }
   LogSupportedBands(wiphy_index);
 }
@@ -520,6 +558,13 @@ void Server::BroadcastApInterfaceTornDown(
     sp<IApInterface> network_interface) {
   for (auto& it : interface_event_callbacks_) {
     it->OnApTorndownEvent(network_interface);
+  }
+}
+
+void Server::BroadcastRegDomainChanged(
+    std::string country_code) {
+  for (const auto& it : wificond_event_callbacks_) {
+    it->OnRegDomainChanged(country_code);
   }
 }
 
