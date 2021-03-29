@@ -28,6 +28,7 @@
 #include "android/net/wifi/nl80211/IApInterface.h"
 #include "android/net/wifi/nl80211/IClientInterface.h"
 #include "android/net/wifi/nl80211/IInterfaceEventCallback.h"
+#include "android/net/wifi/nl80211/IWificondEventCallback.h"
 
 #include "wificond/ap_interface_impl.h"
 #include "wificond/client_interface_impl.h"
@@ -47,6 +48,13 @@ class Server : public android::net::wifi::nl80211::BnWificond {
          NetlinkUtils* netlink_utils,
          ScanUtils* scan_utils);
   ~Server() override = default;
+
+  android::binder::Status registerWificondEventCallback(
+      const android::sp<android::net::wifi::nl80211::IWificondEventCallback>&
+          callback) override;
+  android::binder::Status unregisterWificondEventCallback(
+      const android::sp<android::net::wifi::nl80211::IWificondEventCallback>&
+          callback) override;
 
   android::binder::Status RegisterCallback(
       const android::sp<android::net::wifi::nl80211::IInterfaceEventCallback>&
@@ -119,6 +127,7 @@ class Server : public android::net::wifi::nl80211::BnWificond {
       android::sp<android::net::wifi::nl80211::IClientInterface> network_interface);
   void BroadcastApInterfaceTornDown(
       android::sp<android::net::wifi::nl80211::IApInterface> network_interface);
+  void BroadcastRegDomainChanged(std::string country_code);
   void MarkDownAllInterfaces();
   int FindWiphyIndex(const std::string& iface_name);
   bool GetBandInfo(int wiphy_index, BandInfo* band_info);
@@ -139,6 +148,8 @@ class Server : public android::net::wifi::nl80211::BnWificond {
   std::map<std::string, std::unique_ptr<ClientInterfaceImpl>> client_interfaces_;
   std::vector<android::sp<android::net::wifi::nl80211::IInterfaceEventCallback>>
       interface_event_callbacks_;
+  std::vector<android::sp<android::net::wifi::nl80211::IWificondEventCallback>>
+      wificond_event_callbacks_;
 
   // Cached interface list from kernel for dumping.
   std::vector<InterfaceInfo> debug_interfaces_;
