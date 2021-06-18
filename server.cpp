@@ -70,23 +70,11 @@ Server::Server(unique_ptr<InterfaceTool> if_tool,
 }
 
 Status Server::registerWificondEventCallback(const sp<IWificondEventCallback>& callback) {
-  uint32_t wiphy_index;
   for (const auto& it : wificond_event_callbacks_) {
     if (IInterface::asBinder(callback) == IInterface::asBinder(it)) {
       LOG(WARNING) << "Ignore duplicate wificond event callback registration";
       return Status::ok();
     }
-  }
-  // TODO: It may need to handle multi-chips case to get multi-wiphy index and
-  // register corresponding callback.
-  if (netlink_utils_->GetWiphyIndex(&wiphy_index)) {
-    LOG(INFO) << "SubscribeRegDomainChange on wiphy_index:" << wiphy_index;
-    netlink_utils_->SubscribeRegDomainChange(
-          wiphy_index,
-           std::bind(&Server::OnRegDomainChanged,
-           this,
-           _1,
-           _2));
   }
   LOG(INFO) << "New wificond event callback registered";
   wificond_event_callbacks_.push_back(callback);
@@ -94,11 +82,6 @@ Status Server::registerWificondEventCallback(const sp<IWificondEventCallback>& c
 }
 
 Status Server::unregisterWificondEventCallback(const sp<IWificondEventCallback>& callback) {
-  uint32_t wiphy_index;
-  if (netlink_utils_->GetWiphyIndex(&wiphy_index)) {
-    LOG(INFO) << "UnSubscribeRegDomainChange on wiphy_index:" << wiphy_index;
-    netlink_utils_->UnsubscribeRegDomainChange(wiphy_index);
-  }
   for (auto it = wificond_event_callbacks_.begin();
        it != wificond_event_callbacks_.end();
        it++) {
@@ -159,8 +142,12 @@ Status Server::createApInterface(const std::string& iface_name,
   *created_interface = ap_interface->GetBinder();
   BroadcastApInterfaceReady(ap_interface->GetBinder());
   ap_interfaces_[iface_name] = std::move(ap_interface);
+  if (hasNoIfaceForWiphyIndex(wiphy_index)) {
+    UpdateBandWiphyIndexMap(wiphy_index);
+  } else {
+    LOG(INFO) << "Band info for wiphy_index " << wiphy_index << " already available";
+  }
   iface_to_wiphy_index_map_[iface_name] = wiphy_index;
-
   return Status::ok();
 }
 
@@ -176,8 +163,14 @@ Status Server::tearDownApInterface(const std::string& iface_name,
 
   const auto iter_wi = iface_to_wiphy_index_map_.find(iface_name);
   if (iter_wi != iface_to_wiphy_index_map_.end()) {
+    int wiphy_index = iter_wi->second;
     LOG(INFO) << "tearDownApInterface: erasing wiphy_index for iface_name " << iface_name;
     iface_to_wiphy_index_map_.erase(iter_wi);
+    if (hasNoIfaceForWiphyIndex(wiphy_index)) {
+      EraseBandWiphyIndexMap(wiphy_index);
+    } else {
+      LOG(INFO) << "Band info for wiphy_index " << wiphy_index << " retained";
+    }
   }
 
   return Status::ok();
@@ -262,6 +255,7 @@ Status Server::tearDownInterfaces() {
   MarkDownAllInterfaces();
 
   for (auto& it : iface_to_wiphy_index_map_) {
+    netlink_utils_->UnsubscribeRegDomainChange(it.second);
     EraseBandWiphyIndexMap(it.second);
   }
   iface_to_wiphy_index_map_.clear();
@@ -468,6 +462,14 @@ bool Server::SetupInterface(const std::string& iface_name,
     LOG(ERROR) << "Failed to get wiphy index";
     return false;
   }
+  // TODO: It may need to handle multi-chips case to get multi-wiphy index and
+  // register corresponding callback.
+  netlink_utils_->SubscribeRegDomainChange(
+          *wiphy_index,
+           std::bind(&Server::OnRegDomainChanged,
+           this,
+           _1,
+           _2));
 
   debug_interfaces_.clear();
   if (!netlink_utils_->GetInterfaces(*wiphy_index, &debug_interfaces_)) {
@@ -490,7 +492,8 @@ void Server::OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code)
   if (country_code.empty()) {
     LOG(INFO) << "Regulatory domain changed";
   } else {
-    LOG(INFO) << "Regulatory domain changed to country: " << country_code;
+    LOG(INFO) << "Regulatory domain changed to country: " << country_code
+              << " on wiphy_index: " << wiphy_index;
     BroadcastRegDomainChanged(country_code);
   }
   LogSupportedBands(wiphy_index);
