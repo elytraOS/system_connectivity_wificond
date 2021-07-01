@@ -68,6 +68,7 @@ cc_binary {
 
     shared_libs: [
         "android.system.keystore2-V1-ndk_platform",
+        "android.security.legacykeystore-ndk_platform",
         "libbinder",
         "libbinder_ndk",
         "libbase",
