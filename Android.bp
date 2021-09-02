@@ -152,7 +152,6 @@ cc_library_static {
     whole_static_libs: [
         "liblog",
         "libbase",
-        "libutils",
     ],
 
 }
