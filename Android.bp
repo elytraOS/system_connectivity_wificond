@@ -193,6 +193,7 @@ filegroup {
         "aidl/android/net/wifi/nl80211/IScanEvent.aidl",
         "aidl/android/net/wifi/nl80211/ISendMgmtFrameEvent.aidl",
         "aidl/android/net/wifi/nl80211/IWificond.aidl",
+        "aidl/android/net/wifi/nl80211/IWificondEventCallback.aidl",
         "aidl/android/net/wifi/nl80211/IWifiScannerImpl.aidl",
     ],
     path: "aidl",
