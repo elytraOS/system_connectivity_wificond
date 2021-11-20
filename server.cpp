@@ -493,6 +493,7 @@ void Server::OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code)
               << " on wiphy_index: " << wiphy_index;
     BroadcastRegDomainChanged(country_code);
   }
+  UpdateBandWiphyIndexMap(wiphy_index);
   LogSupportedBands(wiphy_index);
 }
 
