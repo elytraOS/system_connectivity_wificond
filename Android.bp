@@ -58,7 +58,10 @@ cc_defaults {
 //
 cc_binary {
     name: "wificond",
-    defaults: ["wificond_defaults"],
+    defaults: [
+        "keystore2_use_latest_aidl_ndk_shared",
+        "wificond_defaults",
+    ],
     init_rc: ["wificond.rc"],
     srcs: [
 	"main.cpp",
@@ -67,7 +70,6 @@ cc_binary {
     include_dirs: ["system/security/keystore/include"],
 
     shared_libs: [
-        "android.system.keystore2-V1-ndk",
         "android.security.legacykeystore-ndk",
         "libbinder",
         "libbinder_ndk",
