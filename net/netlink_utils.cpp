@@ -71,6 +71,8 @@ constexpr uint8_t kHeCapPhyNumByte = 9; // Should be 11
 constexpr uint8_t kHe160MhzBitMask = 0x8;
 constexpr uint8_t kHe80p80MhzBitMask = 0x10;
 
+//TODO(b/216212018) Add constants for  EHT, and 320MHz
+
 bool IsExtFeatureFlagSet(
     const std::vector<uint8_t>& ext_feature_flags_bytes,
     enum nl80211_ext_feature_index ext_feature_flag) {
@@ -457,6 +459,7 @@ bool NetlinkUtils::ParseBandInfo(const NL80211Packet* const packet,
       ParseIfTypeDataAttributes(iftype_data_attr, out_band_info);
     }
     ParseHtVhtPhyCapabilities(band, out_band_info);
+    //TODO(b/216212018) parse for HE/EHT
   }
 
   return true;
@@ -470,6 +473,8 @@ void NetlinkUtils::ParseIfTypeDataAttributes(
     LOG(ERROR) << "Failed to get the list of attributes under iftype_data_attr";
     return;
   }
+  //TODO(b/216212018) Parse attributes for 11be/EHT
+
   NL80211NestedAttr attr = attrs[0];
   if (attr.HasAttribute(NL80211_BAND_IFTYPE_ATTR_HE_CAP_PHY)) {
     out_band_info->is_80211ax_supported = true;
@@ -653,7 +658,6 @@ void NetlinkUtils::ParseVhtCapAttribute(const NL80211NestedAttr& band,
   if (vht_cap & kVht80p80MhzBitMask) {
     out_band_info->is_80p80_mhz_supported = true;
   }
-
 }
 
 void NetlinkUtils::ParseHeCapPhyAttribute(const NL80211NestedAttr& attribute,
