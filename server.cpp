@@ -497,6 +497,24 @@ void Server::OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code)
   LogSupportedBands(wiphy_index);
 }
 
+android::binder::Status Server::notifyCountryCodeChanged() {
+  LOG(INFO) << "Receive notifyCountryCodeChanged";
+  uint32_t wiphy_index;
+  for (auto& it : client_interfaces_) {
+    if (netlink_utils_->GetWiphyIndex(&wiphy_index, it.first)) {
+      UpdateBandWiphyIndexMap(wiphy_index);
+      LogSupportedBands(wiphy_index);
+    }
+  }
+  for (auto& it : ap_interfaces_) {
+    if (netlink_utils_->GetWiphyIndex(&wiphy_index, it.first)) {
+      UpdateBandWiphyIndexMap(wiphy_index);
+      LogSupportedBands(wiphy_index);
+    }
+  }
+  return Status::ok();
+}
+
 void Server::LogSupportedBands(uint32_t wiphy_index) {
   BandInfo band_info;
   ScanCapabilities scan_capabilities;
