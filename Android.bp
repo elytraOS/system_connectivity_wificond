@@ -242,6 +242,13 @@ cc_test {
     name: "wificond_unit_test",
     defaults: ["wificond_defaults"],
     test_suites: ["device-tests"],
+    tidy_timeout_srcs: [
+        "tests/client_interface_impl_unittest.cpp",
+        "tests/netlink_utils_unittest.cpp",
+        "tests/scanner_unittest.cpp",
+        "tests/scan_utils_unittest.cpp",
+        "tests/server_unittest.cpp",
+    ],
     srcs: [
         "tests/ap_interface_impl_unittest.cpp",
         "tests/client_interface_impl_unittest.cpp",
