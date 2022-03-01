@@ -495,7 +495,12 @@ void Server::OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code)
               << " on wiphy_index: " << wiphy_index;
     BroadcastRegDomainChanged(country_code);
   }
-  UpdateBandWiphyIndexMap(wiphy_index);
+  // Sometimes lower layer sends stale wiphy index when there are no
+  // interfaces. So update band - wiphy index mapping only if an
+  // interface exists
+  if (!hasNoIfaceForWiphyIndex(wiphy_index)) {
+    UpdateBandWiphyIndexMap(wiphy_index);
+  }
   LogSupportedBands(wiphy_index);
 }
 
