@@ -494,9 +494,6 @@ void Server::OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code)
   } else {
     LOG(INFO) << "Regulatory domain changed to country: " << country_code
               << " on wiphy_index: " << wiphy_index;
-    if (!hasNoIfaceForWiphyIndex(wiphy_index)) {
-      UpdateBandWiphyIndexMap(wiphy_index);
-    }
     BroadcastRegDomainChanged(country_code);
   }
   LogSupportedBands(wiphy_index);
