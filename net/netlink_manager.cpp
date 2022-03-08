@@ -71,6 +71,9 @@ ChannelBandwidth getBandwidthType(uint32_t bandwidth) {
       return BW_80P80;
     case NL80211_CHAN_WIDTH_160:
       return BW_160;
+//TODO: To be added after the nl80211.h file is updated with 11be changes
+//    case NL80211_CHAN_WIDTH_320:
+//      return BW_320;
   }
   LOG(ERROR) << "Unknown bandwidth type: " << bandwidth;
   return BW_INVALID;

@@ -447,8 +447,10 @@ Status Server::getDeviceWiphyCapabilities(
   capabilities->value().is80211nSupported_  = band_info.is_80211n_supported;
   capabilities->value().is80211acSupported_ = band_info.is_80211ac_supported;
   capabilities->value().is80211axSupported_ = band_info.is_80211ax_supported;
+  capabilities->value().is80211beSupported_ = band_info.is_80211be_supported;
   capabilities->value().is160MhzSupported_ = band_info.is_160_mhz_supported;
   capabilities->value().is80p80MhzSupported_ = band_info.is_80p80_mhz_supported;
+  capabilities->value().is320MhzSupported_ = band_info.is_320_mhz_supported;
   capabilities->value().maxTxStreams_ = band_info.max_tx_streams;
   capabilities->value().maxRxStreams_ = band_info.max_rx_streams;
 
