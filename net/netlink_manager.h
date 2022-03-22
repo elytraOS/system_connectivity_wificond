@@ -98,6 +98,7 @@ enum ChannelBandwidth {
     BW_80,
     BW_80P80,
     BW_160,
+    BW_320,
 };
 
 // This describes a type of function handling channel switch notification.
