@@ -134,6 +134,15 @@ Status ScannerImpl::getPnoScanResults(
   return Status::ok();
 }
 
+Status ScannerImpl::getMaxSsidsPerScan(int32_t* out_max_ssids_per_scan) {
+  if (!CheckIsValid()) {
+    *out_max_ssids_per_scan = 0;
+    return Status::ok();
+  }
+  *out_max_ssids_per_scan = static_cast<int32_t>(scan_capabilities_.max_num_scan_ssids);
+  return Status::ok();
+}
+
 Status ScannerImpl::scan(const SingleScanSettings& scan_settings,
                          bool* out_success) {
   if (!CheckIsValid()) {

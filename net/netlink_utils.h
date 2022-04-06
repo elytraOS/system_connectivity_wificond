@@ -319,8 +319,6 @@ class NetlinkUtils {
                                BandInfo* out_band_info);
   void ParseHeMcsSetAttribute(const NL80211NestedAttr& attribute,
                               BandInfo* out_band_info);
-  void ParseEhtMcsSetAttribute(const NL80211NestedAttr& attribute,
-                               BandInfo* out_band_info);//TODO Implementation missing
   std::pair<uint32_t, uint32_t> ParseHtMcsSet(
       const std::vector<uint8_t>& ht_mcs_set);
   uint32_t ParseMcsMap(uint16_t mcs_map);
@@ -329,7 +327,7 @@ class NetlinkUtils {
   void ParseHeCapPhyAttribute(const NL80211NestedAttr& attribute,
                               BandInfo* out_band_info);
   void ParseEhtCapPhyAttribute(const NL80211NestedAttr& attribute,
-                              BandInfo* out_band_info);//TODO: implementation missing
+                              BandInfo* out_band_info);
 
   bool ParseScanCapabilities(const NL80211Packet* const packet,
                              ScanCapabilities* out_scan_capabilities);
