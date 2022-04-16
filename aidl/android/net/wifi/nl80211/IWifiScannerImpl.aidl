@@ -43,7 +43,7 @@ interface IWifiScannerImpl {
   NativeScanResult[] getPnoScanResults();
 
   // Get the max number of SSIDs that the driver supports per scan.
-  int getMaxNumScanSsids();
+  int getMaxSsidsPerScan();
 
   // Request a single scan using a SingleScanSettings parcelable object.
   boolean scan(in SingleScanSettings scanSettings);
