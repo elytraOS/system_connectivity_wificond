@@ -488,12 +488,19 @@ bool Server::SetupInterface(const std::string& iface_name,
 }
 
 void Server::OnRegDomainChanged(uint32_t wiphy_index, std::string& country_code) {
+  string current_country_code;
   if (country_code.empty()) {
-    LOG(INFO) << "Regulatory domain changed";
+    LOG(DEBUG) << "Regulatory domain changed with empty country code (world mode?)";
+    if (!netlink_utils_->GetCountryCode(&current_country_code)) {
+        LOG(ERROR) << "Fail to get country code on wiphy_index:" << wiphy_index;
+    }
   } else {
-    LOG(INFO) << "Regulatory domain changed to country: " << country_code
-              << " on wiphy_index: " << wiphy_index;
-    BroadcastRegDomainChanged(country_code);
+      current_country_code = country_code;
+  }
+  if (!current_country_code.empty()) {
+      LOG(INFO) << "Regulatory domain changed to country: " << current_country_code
+                << " on wiphy_index: " << wiphy_index;
+      BroadcastRegDomainChanged(current_country_code);
   }
   // Sometimes lower layer sends stale wiphy index when there are no
   // interfaces. So update band - wiphy index mapping only if an
