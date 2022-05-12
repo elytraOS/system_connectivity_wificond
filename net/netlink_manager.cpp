@@ -48,7 +48,7 @@ namespace {
 // netlink.h suggests NLMSG_GOODSIZE to be at most 8192 bytes.
 constexpr int kReceiveBufferSize = 8 * 1024;
 constexpr uint32_t kBroadcastSequenceNumber = 0;
-constexpr int kMaximumNetlinkMessageWaitMilliSeconds = 300;
+constexpr int kMaximumNetlinkMessageWaitMilliSeconds = 1000;
 uint8_t ReceiveBuffer[kReceiveBufferSize];
 
 void AppendPacket(vector<unique_ptr<const NL80211Packet>>* vec,
@@ -99,7 +99,8 @@ uint32_t NetlinkManager::GetSequenceNumber() {
 void NetlinkManager::ReceivePacketAndRunHandler(int fd) {
   ssize_t len = read(fd, ReceiveBuffer, kReceiveBufferSize);
   if (len == -1) {
-    LOG(ERROR) << "Failed to read packet from buffer";
+    LOG(ERROR) << "Failed to read packet from buffer on fd: " << fd;
+    perror(" netlink error ");
     return;
   }
   if (len == 0) {
@@ -307,7 +308,7 @@ bool NetlinkManager::SendMessageAndGetResponses(
                            time_remaining);
 
     if (poll_return == 0) {
-      LOG(ERROR) << "Failed to poll netlink fd: time out ";
+      LOG(ERROR) << "Failed to poll netlink fd:" << sync_netlink_fd_.get() << "time out ";
       message_handlers_.erase(sequence);
       return false;
     } else if (poll_return == -1) {
