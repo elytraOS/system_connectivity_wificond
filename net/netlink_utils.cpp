@@ -136,8 +136,9 @@ bool NetlinkUtils::GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list,
       netlink_manager_->GetSequenceNumber(),
       getpid());
   get_wiphy.AddFlag(NLM_F_DUMP);
+  int ifindex;
   if (!iface_name.empty()) {
-    int ifindex = if_nametoindex(iface_name.c_str());
+    ifindex = if_nametoindex(iface_name.c_str());
     if (ifindex == 0) {
       PLOG(ERROR) << "Can't get " << iface_name << " index";
       return false;
@@ -146,7 +147,8 @@ bool NetlinkUtils::GetWiphyIndices(std::vector<uint32_t>* wiphy_index_list,
   }
   vector<unique_ptr<const NL80211Packet>> response;
   if (!netlink_manager_->SendMessageAndGetResponses(get_wiphy, &response))  {
-    LOG(ERROR) << "NL80211_CMD_GET_WIPHY dump failed";
+    LOG(ERROR) << "NL80211_CMD_GET_WIPHY dump failed, ifindex: "
+               << ifindex << " and name: " << iface_name.c_str();
     return false;
   }
   if (response.empty()) {
