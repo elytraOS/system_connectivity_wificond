@@ -135,7 +135,7 @@ bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index,
       netlink_manager_->GetSequenceNumber(),
       getpid());
   get_wiphy.AddFlag(NLM_F_DUMP);
-  int ifindex;
+  int ifindex = 0;
   if (!iface_name.empty()) {
     ifindex = if_nametoindex(iface_name.c_str());
     if (ifindex == 0) {
