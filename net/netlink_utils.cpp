@@ -73,6 +73,7 @@ constexpr uint8_t kHe80p80MhzBitMask = 0x10;
 
 constexpr uint8_t kEhtCapPhyNumByte = 8;
 constexpr uint8_t kEht320MhzBitMask = 0x2;
+constexpr int kNl80211CmdRetryCount = 1;
 
 bool IsExtFeatureFlagSet(
     const std::vector<uint8_t>& ext_feature_flags_bytes,
@@ -145,11 +146,20 @@ bool NetlinkUtils::GetWiphyIndex(uint32_t* out_wiphy_index,
     get_wiphy.AddAttribute(NL80211Attr<uint32_t>(NL80211_ATTR_IFINDEX, ifindex));
   }
   vector<unique_ptr<const NL80211Packet>> response;
-  if (!netlink_manager_->SendMessageAndGetResponses(get_wiphy, &response))  {
-    LOG(ERROR) << "NL80211_CMD_GET_WIPHY dump failed, ifindex: "
-               << ifindex << " and name: " << iface_name.c_str();
-    return false;
+  for (int i = kNl80211CmdRetryCount; i >= 0; i--) {
+      if (netlink_manager_->SendMessageAndGetResponses(get_wiphy, &response))  {
+          break;
+      } else {
+        if (i == 0) {
+            LOG(ERROR) << "NL80211_CMD_GET_WIPHY dump failed, ifindex: "
+                       << ifindex << " and name: " << iface_name.c_str();
+            return false;
+        } else {
+            LOG(INFO) << "Failed to get wiphy index, retry again";
+        }
+      }
   }
+
   if (response.empty()) {
     LOG(INFO) << "No wiphy is found";
     return false;
@@ -320,9 +330,17 @@ bool NetlinkUtils::GetWiphyInfo(
     get_wiphy.AddFlag(NLM_F_DUMP);
   }
   vector<unique_ptr<const NL80211Packet>> response;
-  if (!netlink_manager_->SendMessageAndGetResponses(get_wiphy, &response))  {
-    LOG(ERROR) << "NL80211_CMD_GET_WIPHY dump failed";
-    return false;
+  for (int i = kNl80211CmdRetryCount; i >= 0; i--) {
+      if (netlink_manager_->SendMessageAndGetResponses(get_wiphy, &response))  {
+          break;
+      } else {
+        if (i == 0) {
+            LOG(ERROR) << "NL80211_CMD_GET_WIPHY dump failed";
+            return false;
+        } else {
+            LOG(INFO) << "Failed to get wiphy info, retry again";
+        }
+      }
   }
 
   vector<NL80211Packet> packet_per_wiphy;
